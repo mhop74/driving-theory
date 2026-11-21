@@ -203,3 +203,7 @@ input[type=password], select { width: 100%; font: inherit; padding: 12px; border
 .hp-label { position: absolute; top: 0; left: 0; right: 0; padding: 6px 10px; background: rgba(0,0,0,.6); color: #ffd54f; font-weight: 700; font-size: .85rem; text-align: center; pointer-events: none; }
 .hp-time-wide { max-width: 760px; }
 .badge { display: inline-block; margin-left: 8px; font-size: .7rem; font-weight: 800; padding: 1px 7px; border-radius: 99px; background: var(--primary); color: var(--primary-text); vertical-align: middle; }
+.official-links ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.official-links li { display: flex; flex-direction: column; gap: 1px; }
+.official-links a { color: var(--primary); font-weight: 600; text-decoration: none; }
+.official-links a:hover { text-decoration: underline; }

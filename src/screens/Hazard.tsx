@@ -84,6 +84,32 @@ export function HazardClip({ id }: { id: string }) {
           </div>
         </>
       )}
+      <OfficialLinks />
+    </div>
+  );
+}
+
+/** Official DVSA hazard perception resources, shown under every clip. */
+const OFFICIAL_LINKS = [
+  { href: 'https://www.youtube.com/watch?v=SdQRkmdhwJs', title: 'Hazard perception test: official DVSA guide', note: 'Video (YouTube): when to click and how scoring works' },
+  { href: 'https://www.gov.uk/theory-test/hazard-perception-test', title: 'How the hazard perception test works', note: 'GOV.UK: the official test format and scoring' },
+  { href: 'https://www.gov.uk/government/news/hazard-perception-clips-get-a-modern-makeover', title: 'Example of an official CGI test clip', note: 'GOV.UK news story with a DVSA video' },
+  { href: 'https://www.safedrivingforlife.info/shop/official-dvsa-guide-hazard-perception-elearning/', title: 'The Official DVSA Guide to Hazard Perception', note: 'Paid: many more practice clips in the real test style' },
+];
+
+export function OfficialLinks() {
+  return (
+    <div className="card official-links">
+      <h3>Practise with official DVSA videos</h3>
+      <p className="muted small">These clips are for practice. The real test uses DVSA's own CGI video clips, which look different.</p>
+      <ul>
+        {OFFICIAL_LINKS.map((l) => (
+          <li key={l.href}>
+            <a href={l.href} target="_blank" rel="noopener noreferrer">{l.title} ↗</a>
+            <span className="muted small">{l.note}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -91,7 +117,7 @@ export function HazardClip({ id }: { id: string }) {
 function Intro({ onStart, label = 'Start clip' }: { onStart: () => void; label?: string }) {
   return (
     <div className="card center">
-      <p className="small">You are driving the blue car at the bottom of the scene. Tap anywhere on the scene when you see a hazard developing. A flag appears each time you tap.</p>
+      <p className="small">You are the driver. Tap anywhere on the scene when you see a hazard developing. A flag appears each time you tap.</p>
       <button className="btn primary" onClick={onStart}>{label}</button>
     </div>
   );
@@ -149,6 +175,7 @@ export function HazardMock() {
             <ClipResult clip={c} clicks={results[k].clicks} score={results[k].score} />
           </div>
         ))}
+        <OfficialLinks />
         <button className="btn primary full" onClick={() => go('hazard')}>Done</button>
       </div>
     );
