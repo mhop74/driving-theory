@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { existsSync } from 'node:fs';
 import { ALL_QUESTIONS, QUESTIONS, SCENARIOS, TOPICS } from './data';
 import { CLIPS } from './data/clips';
 import { SIGN_CARDS } from './components/Sign';
@@ -28,6 +29,9 @@ describe('question bank', () => {
   it('only references signs that can be drawn', () => {
     const known = new Set(SIGN_CARDS.map((s) => s.id));
     for (const q of QUESTIONS) if (q.sign) expect(known.has(q.sign), q.id).toBe(true);
+  });
+  it('has an official image for every sign card', () => {
+    for (const c of SIGN_CARDS) expect(existsSync(`public/signs/${c.id}.png`), c.id).toBe(true);
   });
   it('has 3 questions per scenario', () => {
     for (const s of SCENARIOS) expect(s.questions).toHaveLength(3);

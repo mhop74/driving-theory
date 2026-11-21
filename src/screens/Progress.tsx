@@ -95,6 +95,7 @@ export function Settings({ onLock }: { onLock: () => void }) {
         <h3>About</h3>
         <p>Covers the DVSA car (category B) theory test in Great Britain: {EXAM.mcQuestions} multiple-choice questions in {EXAM.mcMinutes} minutes (pass {EXAM.mcPass}), and hazard perception with {EXAM.hpClips} clips (pass {EXAM.hpPass}/{EXAM.hpMax}). You must pass both parts at the same sitting.</p>
         <p>The questions are original. They are written from the Highway Code and Know Your Traffic Signs (Crown copyright, Open Government Licence) and are not DVSA's licensed question bank. Always check the current Highway Code on GOV.UK.</p>
+        <p>Road sign images: The Highway Code – Traffic signs, Department for Transport. Crown copyright, used under the Open Government Licence v3.0.</p>
         <p className="muted">{QUESTIONS.length} questions · build {__BUILD_ID__}</p>
       </div>
     </div>

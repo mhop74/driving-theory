@@ -163,7 +163,7 @@ input[type=password], select { width: 100%; font: inherit; padding: 12px; border
 .flash .quiz-actions { width: 100%; }
 .sign-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 12px; }
 .sign-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; font-size: .78rem; }
-.sign { flex: none; }
+.sign { flex: none; display: block; }
 
 .hp-player { position: relative; user-select: none; -webkit-user-select: none; }
 .hp-canvas { display: block; width: min(100%, 420px, calc((100vh - 190px) * 0.643)); width: min(100%, 420px, calc((100dvh - 190px) * 0.643)); margin: 0 auto; border-radius: 12px; touch-action: none; cursor: crosshair; background: #55595d; }
