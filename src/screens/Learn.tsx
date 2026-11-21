@@ -18,6 +18,7 @@ export function LearnHome() {
         <div className="actions">
           <button className="btn primary full" onClick={() => go('practice/quick')}>Quick practice (10 mixed questions)</button>
           <button className="btn full" onClick={() => go('signs')}>Road sign flashcards</button>
+          <button className="btn full" onClick={() => go('stopping')}>Thinking and stopping distances</button>
         </div>
       </div>
       <h3 className="section">The 14 official topics</h3>

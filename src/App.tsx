@@ -4,6 +4,7 @@ import { isUnlocked } from './lib/auth';
 import { Lock } from './screens/Lock';
 import { Home } from './screens/Home';
 import { LearnHome, Lesson, Signs } from './screens/Learn';
+import { Stopping } from './screens/Stopping';
 import { TestHome, QuizRoute } from './screens/Test';
 import { HazardHome, HazardClip, HazardMock } from './screens/Hazard';
 import { Progress, Settings } from './screens/Progress';
@@ -30,6 +31,7 @@ export function App() {
     case undefined: page = <Home />; break;
     case 'learn': page = b ? <Lesson topic={b as TopicId} /> : <LearnHome />; break;
     case 'signs': page = <Signs />; break;
+    case 'stopping': page = <Stopping />; break;
     case 'practice': page = <QuizRoute key={route.join('/')} kind={b ?? 'quick'} arg={c} mode="practice" />; break;
     case 'mock': page = <QuizRoute key="mock" kind="mock" mode="mock" />; break;
     case 'test': page = b ? <QuizRoute key={route.join('/')} kind={b} arg={c} mode="test" /> : <TestHome />; break;
@@ -40,7 +42,7 @@ export function App() {
     default: page = <Home />;
   }
 
-  const active = a === 'signs' ? 'learn' : a === 'settings' ? 'progress' : a === 'mock' ? 'test' : (a ?? '');
+  const active = a === 'signs' || a === 'stopping' ? 'learn' : a === 'settings' ? 'progress' : a === 'mock' ? 'test' : (a ?? '');
 
   return (
     <div className={`app ${immersive ? 'immersive' : ''}`}>

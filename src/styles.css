@@ -207,3 +207,28 @@ input[type=password], select { width: 100%; font: inherit; padding: 12px; border
 .official-links li { display: flex; flex-direction: column; gap: 1px; }
 .official-links a { color: var(--primary); font-weight: 600; text-decoration: none; }
 .official-links a:hover { text-decoration: underline; }
+
+/* Stopping distances chart (series colours: reference categorical slots 1 & 2) */
+:root { --sd-think: #2a78d6; --sd-brake: #eb6834; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --sd-think: #3987e5; --sd-brake: #d95926; } }
+:root[data-theme="dark"] { --sd-think: #3987e5; --sd-brake: #d95926; }
+.sd-defs { margin: 4px 0 8px; padding-left: 18px; }
+.sd-chart { display: flex; flex-direction: column; gap: 8px; }
+.sd-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: .8rem; color: var(--muted); margin-bottom: 4px; }
+.sd-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+.sd-row { display: grid; grid-template-columns: 52px 1fr; align-items: center; gap: 8px; }
+.sd-speed { font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.sd-track { position: relative; display: flex; align-items: center; gap: 6px; padding-right: 44px; }
+.sd-bar { display: flex; gap: 2px; height: 18px; min-width: 0; }
+.sd-seg { height: 100%; flex-basis: 0; }
+.sd-seg.sd-think { border-radius: 4px 0 0 4px; }
+.sd-seg.sd-brake { border-radius: 0 4px 4px 0; }
+.sd-think { background: var(--sd-think); }
+.sd-brake { background: var(--sd-brake); }
+.sd-total { font-size: .8rem; font-weight: 700; color: var(--text); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.sd-tip { position: absolute; left: 0; top: -26px; z-index: 2; background: var(--text); color: var(--card); font-size: .75rem; padding: 2px 8px; border-radius: 6px; white-space: nowrap; pointer-events: none; }
+.sd-axis { display: flex; justify-content: space-between; margin-left: 60px; margin-right: 44px; font-size: .7rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 2px; }
+.table-wrap { overflow-x: auto; }
+.sd-table { width: 100%; border-collapse: collapse; font-size: .85rem; font-variant-numeric: tabular-nums; }
+.sd-table th { text-align: left; font-size: .72rem; color: var(--muted); font-weight: 600; padding: 4px 6px; border-bottom: 1px solid var(--line); }
+.sd-table td { padding: 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
