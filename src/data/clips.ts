@@ -40,7 +40,17 @@ export interface Clip {
   layout: Layout;
   actors: Actor[];
   hazards: HazardWindow[];
+  /** Scoring windows for the 3D view, where the driver's eye line (e.g. behind parked cars) can delay when a hazard first becomes visible. */
+  hazards3d?: HazardWindow[];
   explain: string;
+}
+
+/** Clips that have been upgraded to the first-person 3D view. */
+export const THREE_D = new Set(['ball']);
+
+/** Scoring windows for the view the clip is actually shown in. */
+export function hazardsFor(clip: Clip): HazardWindow[] {
+  return THREE_D.has(clip.id) && clip.hazards3d ? clip.hazards3d : clip.hazards;
 }
 
 const parked = (x: number, y: number, color = '#7a8794', face = 0): Actor => ({ kind: 'car', keys: [[0, x, y]], color, face });
@@ -58,6 +68,8 @@ export const CLIPS: Clip[] = [
       { kind: 'child', keys: [[0, 84, 793], [10.2, 84, 793], [10.9, 114, 793], [11.6, 128, 793], [13.6, 128, 793], [15.6, 200, 793], [16.6, 265, 795]], color: '#e67e22' },
     ],
     hazards: [{ start: 9.2, end: 13.2, label: 'Ball rolls into the road, followed by a child' }],
+    // From the driver's seat the ball is hidden by the parked cars until about 9.9 s.
+    hazards3d: [{ start: 9.9, end: 13.9, label: 'Ball rolls into the road, followed by a child' }],
     explain: 'A ball appeared between parked cars. Where there is a ball, a child often follows. Respond as soon as the ball appears.',
   },
   {

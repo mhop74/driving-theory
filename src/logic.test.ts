@@ -96,7 +96,7 @@ describe('hazard perception scoring', () => {
     expect(singles.length).toBeGreaterThanOrEqual(EXAM.hpClips - 1);
     expect(CLIPS.filter((c) => c.hazards.length === 2)).toHaveLength(1);
     for (const c of CLIPS) {
-      for (const hz of c.hazards) { expect(hz.end).toBeLessThanOrEqual(c.duration); expect(hz.end - hz.start).toBeGreaterThan(2); }
+      for (const hz of [...c.hazards, ...(c.hazards3d ?? [])]) { expect(hz.end).toBeLessThanOrEqual(c.duration); expect(hz.end - hz.start).toBeGreaterThan(2); }
       for (const a of c.actors) for (let i = 1; i < a.keys.length; i++) expect(a.keys[i][0], `${c.id}`).toBeGreaterThan(a.keys[i - 1][0]);
       for (let i = 1; i < c.cam.length; i++) expect(c.cam[i][1]).toBeGreaterThanOrEqual(c.cam[i - 1][1]);
     }

@@ -261,12 +261,12 @@ export function HazardPlayer({ clip, onDone, review }: PlayerProps) {
   );
 }
 
-export function Timeline({ clip, clicks, scores }: { clip: Clip; clicks: number[]; scores: number[] }) {
+export function Timeline({ clip, hazards = clip.hazards, clicks, scores }: { clip: Clip; hazards?: Clip['hazards']; clicks: number[]; scores: number[] }) {
   const pct = (t: number) => `${(t / clip.duration) * 100}%`;
   return (
     <div className="timeline">
       <div className="tl-track">
-        {clip.hazards.map((h, i) => (
+        {hazards.map((h, i) => (
           <div key={i} className="tl-window" style={{ left: pct(h.start), width: pct(h.end - h.start) }}>
             {[5, 4, 3, 2, 1].map((n) => <span key={n}>{n}</span>)}
           </div>
@@ -275,7 +275,7 @@ export function Timeline({ clip, clicks, scores }: { clip: Clip; clicks: number[
       </div>
       <div className="tl-legend muted small"><span>0s</span><span>{clip.duration}s</span></div>
       <ul className="small">
-        {clip.hazards.map((h, i) => <li key={i}><strong>{scores[i]}/5</strong> · {h.label}</li>)}
+        {hazards.map((h, i) => <li key={i}><strong>{scores[i]}/5</strong> · {h.label}</li>)}
       </ul>
     </div>
   );

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
-import { CLIPS, type Clip } from '../data/clips';
+import { CLIPS, THREE_D, hazardsFor, type Clip } from '../data/clips';
 import { HazardPlayer, Timeline } from '../components/HazardPlayer';
 import { scoreClip, type ClipScore } from '../lib/hp';
 import { EXAM } from '../lib/exam';
@@ -9,8 +9,6 @@ import { useStore } from '../lib/useStore';
 import { go } from '../lib/router';
 
 const Hazard3DPlayer = lazy(() => import('../components/Hazard3D'));
-/** Clips that have been upgraded to the first-person 3D view. */
-const THREE_D = new Set(['ball']);
 
 function Player(props: { clip: Clip; onDone: (clicks: number[]) => void; review?: { clicks: number[] } }) {
   if (!THREE_D.has(props.clip.id)) return <HazardPlayer {...props} />;
@@ -64,7 +62,7 @@ export function HazardClip({ id }: { id: string }) {
   if (!clip) return <p>Clip not found.</p>;
 
   function done(clicks: number[]) {
-    const score = scoreClip(clip!.hazards, clicks);
+    const score = scoreClip(hazardsFor(clip!), clicks);
     update((s) => { s.hp.push({ at: Date.now(), score: score.total, max: clip!.hazards.length * 5, full: false, clips: 1 }); });
     setPhase({ kind: 'result', clicks, score });
   }
@@ -104,7 +102,7 @@ function ClipResult({ clip, clicks, score }: { clip: Clip; clicks: number[]; sco
     <div className="card">
       <div className="clip-score"><b>{score.total}</b>/{max}</div>
       {score.cheat && <p className="error">Scored 0: {score.cheat.toLowerCase()}.</p>}
-      <Timeline clip={clip} clicks={clicks} scores={score.perHazard} />
+      <Timeline clip={clip} hazards={hazardsFor(clip)} clicks={clicks} scores={score.perHazard} />
       <p className="small">{clip.explain}</p>
     </div>
   );
@@ -123,7 +121,7 @@ export function HazardMock() {
   const [results, setResults] = useState<{ clicks: number[]; score: ClipScore }[]>([]);
 
   function done(clicks: number[]) {
-    const score = scoreClip(clips[i].hazards, clicks);
+    const score = scoreClip(hazardsFor(clips[i]), clicks);
     const next = [...results, { clicks, score }];
     setResults(next);
     setPlaying(false);

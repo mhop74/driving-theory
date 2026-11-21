@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import type { Actor, Clip } from '../data/clips';
+import { hazardsFor, type Actor, type Clip } from '../data/clips';
 import { camAt, lerpKeys } from './HazardPlayer';
 
 // First-person 3D renderer for hazard perception clips.
@@ -342,7 +342,8 @@ export default function Hazard3DPlayer({ clip, onDone, review }: Props) {
     start.current = performance.now();
     let raf = 0, done = false, last = 0;
     const frame = () => {
-      const t = Math.min((performance.now() - start.current) / 1000, clip.duration);
+      const frozen = (window as unknown as { __hpFreeze?: number }).__hpFreeze; // test hook: render a fixed moment
+      const t = frozen ?? Math.min((performance.now() - start.current) / 1000, clip.duration);
       const dt = Math.min(0.1, t - last); last = t;
       const cy = camAt(clip, t);
       const v1 = camAt(clip, t + 0.1) - cy, v0 = cy - camAt(clip, t - 0.1);
@@ -356,7 +357,7 @@ export default function Hazard3DPlayer({ clip, onDone, review }: Props) {
       setElapsed(t);
       (window as unknown as { __hpT?: number }).__hpT = t;
       if (review) {
-        const active = clip.hazards.find((h) => t >= h.start && t <= h.end);
+        const active = hazardsFor(clip).find((h) => t >= h.start && t <= h.end);
         setLabel(active ? active.label : null);
       }
       if (t >= clip.duration) { if (!done) { done = true; onDone(clicks.current); } return; }
