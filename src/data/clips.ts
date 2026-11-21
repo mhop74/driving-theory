@@ -1,4 +1,6 @@
 import type { HazardWindow } from '../lib/hp';
+import { supports3D } from '../lib/webgl';
+import { WINDOWS_3D } from './windows3d';
 
 // Simplified top-down hazard perception clips.
 // World coordinates: x across the road (0–360, road 105–255, centre line 180;
@@ -40,17 +42,14 @@ export interface Clip {
   layout: Layout;
   actors: Actor[];
   hazards: HazardWindow[];
-  /** Scoring windows for the 3D view, where the driver's eye line (e.g. behind parked cars) can delay when a hazard first becomes visible. */
-  hazards3d?: HazardWindow[];
+  /** Index into `actors` of the road user that is each hazard (aligned with `hazards`). */
+  focus: number[];
   explain: string;
 }
 
-/** Clips that have been upgraded to the first-person 3D view. */
-export const THREE_D = new Set(['ball']);
-
-/** Scoring windows for the view the clip is actually shown in. */
+/** Scoring windows for the view the clip is actually shown in (3D where supported, otherwise 2D). */
 export function hazardsFor(clip: Clip): HazardWindow[] {
-  return THREE_D.has(clip.id) && clip.hazards3d ? clip.hazards3d : clip.hazards;
+  return (supports3D() && WINDOWS_3D[clip.id]) || clip.hazards;
 }
 
 const parked = (x: number, y: number, color = '#7a8794', face = 0): Actor => ({ kind: 'car', keys: [[0, x, y]], color, face });
@@ -68,8 +67,7 @@ export const CLIPS: Clip[] = [
       { kind: 'child', keys: [[0, 84, 793], [10.2, 84, 793], [10.9, 114, 793], [11.6, 128, 793], [13.6, 128, 793], [15.6, 200, 793], [16.6, 265, 795]], color: '#e67e22' },
     ],
     hazards: [{ start: 9.2, end: 13.2, label: 'Ball rolls into the road, followed by a child' }],
-    // From the driver's seat the ball is hidden by the parked cars until about 9.9 s.
-    hazards3d: [{ start: 9.9, end: 13.9, label: 'Ball rolls into the road, followed by a child' }],
+    focus: [7],
     explain: 'A ball appeared between parked cars. Where there is a ball, a child often follows. Respond as soon as the ball appears.',
   },
   {
@@ -82,6 +80,7 @@ export const CLIPS: Clip[] = [
       oncoming(1700), oncoming(2700, 90, '#ccc'),
     ],
     hazards: [{ start: 10, end: 14, label: 'Car pulls out of the side road' }],
+    focus: [1],
     explain: 'The van parked near the junction hid the side road. The car waiting there started to move out. Respond when it starts to edge forward.',
   },
   {
@@ -95,6 +94,7 @@ export const CLIPS: Clip[] = [
       parked(118, 1000),
     ],
     hazards: [{ start: 9.2, end: 13.2, label: 'Pedestrian steps onto the zebra crossing' }],
+    focus: [0],
     explain: 'The pedestrian walking towards the crossing was a potential hazard. It developed when they stepped onto it.',
   },
   {
@@ -107,6 +107,7 @@ export const CLIPS: Clip[] = [
       oncoming(1300), oncoming(2300, 90, '#888'),
     ],
     hazards: [{ start: 8.6, end: 12.6, label: 'Cyclist pulls out to pass the parked van' }],
+    focus: [1],
     explain: 'The cyclist had to move out into your path to get past the van. Hold back and give them room.',
   },
   {
@@ -118,6 +119,7 @@ export const CLIPS: Clip[] = [
       { kind: 'car', keys: [[0, 215, 1470], [8.5, 215, 960], [9.5, 182, 870], [10.5, 178, 800], [11.5, 215, 760], [25, 215, -50]], color: '#e74c3c', brake: [10, 11.5] },
     ],
     hazards: [{ start: 8.3, end: 12.3, label: 'Oncoming car pulls out to overtake the lorry' }],
+    focus: [1],
     explain: 'An oncoming driver pulled out to overtake the lorry and came towards your side. Slow down early to give them room to get back in.',
   },
   {
@@ -129,6 +131,7 @@ export const CLIPS: Clip[] = [
       oncoming(1600), oncoming(2500, 90, '#f1c40f'),
     ],
     hazards: [{ start: 9, end: 13, label: 'Bus signals and pulls out from the stop' }],
+    focus: [0],
     explain: 'The bus signalled right and began to pull out. Give way to buses leaving stops where it is safe.',
   },
   {
@@ -140,6 +143,7 @@ export const CLIPS: Clip[] = [
       oncoming(1900),
     ],
     hazards: [{ start: 7.8, end: 11.8, label: 'Car in front brakes to turn right' }],
+    focus: [0],
     explain: 'The car ahead was signalling right. When its brake lights came on, it was slowing to stop and turn.',
   },
   {
@@ -151,6 +155,7 @@ export const CLIPS: Clip[] = [
       oncoming(1400, 80), oncoming(2200, 80, '#aaa'),
     ],
     hazards: [{ start: 5, end: 9, label: 'Closing up on a horse rider' }],
+    focus: [0],
     explain: 'You were catching up with a horse rider. Slow down early. Pass only when it is safe, at under 10 mph and at least 2 m away.',
   },
   {
@@ -163,6 +168,7 @@ export const CLIPS: Clip[] = [
       parked(118, 1080),
     ],
     hazards: [{ start: 8.9, end: 12.9, label: 'Pedestrian steps out in front of the bus' }],
+    focus: [1],
     explain: 'Passengers often cross in front of stationary buses. A pedestrian appeared from behind it.',
   },
   {
@@ -174,6 +180,7 @@ export const CLIPS: Clip[] = [
       oncoming(1800),
     ],
     hazards: [{ start: 9.2, end: 13.2, label: 'Car reverses out of the driveway' }],
+    focus: [0],
     explain: 'Reversing lights came on, then the car backed out into the road. Look for clues such as exhaust smoke and reversing lights.',
   },
   {
@@ -185,6 +192,7 @@ export const CLIPS: Clip[] = [
       parked(118, 1100),
     ],
     hazards: [{ start: 9.3, end: 13.3, label: 'Oncoming car turns right across your path' }],
+    focus: [0],
     explain: 'The oncoming car was signalling right and turned into the side road on your left, cutting across your lane.',
   },
   {
@@ -197,6 +205,7 @@ export const CLIPS: Clip[] = [
       oncoming(1500), parked(118, 640),
     ],
     hazards: [{ start: 9.5, end: 13.5, label: 'Dog runs into the road' }],
+    focus: [1],
     explain: 'The dog was off its lead near the kerb and ran across the road.',
   },
   {
@@ -210,6 +219,7 @@ export const CLIPS: Clip[] = [
       oncoming(1300), oncoming(2100, 90, '#bbb'),
     ],
     hazards: [{ start: 9.3, end: 13.3, label: 'Driver opens their door into the road' }],
+    focus: [2],
     explain: 'Someone was sitting in the parked car. The door then opened into your path. Leave a door\'s width when passing parked cars where you can.',
   },
   {
@@ -221,6 +231,7 @@ export const CLIPS: Clip[] = [
       oncoming(1700, 80),
     ],
     hazards: [{ start: 9.5, end: 13.5, label: 'Tractor pulls out of the field' }],
+    focus: [0],
     explain: 'The flashing amber beacon at the field entrance warned of a slow vehicle. It pulled out in front of you.',
   },
   {
@@ -236,6 +247,7 @@ export const CLIPS: Clip[] = [
       { start: 5.6, end: 9.6, label: 'Older pedestrian starts crossing the road' },
       { start: 16.2, end: 20.2, label: 'Car pulls out of the side road on the right' },
     ],
+    focus: [0, 1],
     explain: 'This clip had two hazards: an older pedestrian crossing slowly, then a car emerging from the right.',
   },
 ];

@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState } from 'react';
-import { CLIPS, THREE_D, hazardsFor, type Clip } from '../data/clips';
+import { CLIPS, hazardsFor, type Clip } from '../data/clips';
+import { supports3D } from '../lib/webgl';
 import { HazardPlayer, Timeline } from '../components/HazardPlayer';
 import { scoreClip, type ClipScore } from '../lib/hp';
 import { EXAM } from '../lib/exam';
@@ -11,7 +12,7 @@ import { go } from '../lib/router';
 const Hazard3DPlayer = lazy(() => import('../components/Hazard3D'));
 
 function Player(props: { clip: Clip; onDone: (clicks: number[]) => void; review?: { clicks: number[] } }) {
-  if (!THREE_D.has(props.clip.id)) return <HazardPlayer {...props} />;
+  if (!supports3D()) return <HazardPlayer {...props} />;
   return (
     <Suspense fallback={<div className="card center"><p className="muted">Loading 3D scene…</p></div>}>
       <Hazard3DPlayer {...props} />
@@ -28,7 +29,7 @@ export function HazardHome() {
         <h2>Hazard perception</h2>
         <p className="small">Tap the screen as soon as you see a <strong>developing hazard</strong>: something that would make you slow down, stop or change direction. The earlier you respond within the scoring window, the more you score (5 down to 1).</p>
         <p className="small">Tapping constantly or in a pattern scores 0 for the clip, as in the real test.</p>
-        <p className="small muted">These are simplified top-down animations to practise timing and scanning. Also practise with DVSA's official hazard perception clips, which use real-looking video.</p>
+        <p className="small muted">The clips are blocky 3D scenes seen from the driver's seat (or top-down 2D if your device can't show 3D). Use them to practise timing and scanning, and also practise with DVSA's official hazard perception clips, which use realistic video.</p>
       </div>
       <div className="card">
         <h3>Full hazard perception mock</h3>
@@ -45,7 +46,7 @@ export function HazardHome() {
       <h3 className="section">Practise a single clip</h3>
       {CLIPS.map((c) => (
         <button key={c.id} className="card topic-row" onClick={() => go(`hazard/clip/${c.id}`)}>
-          <div><strong>{c.title}</strong>{THREE_D.has(c.id) && <span className="badge">3D</span>}<div className="muted small">{c.hazards.length} hazard{c.hazards.length > 1 ? 's' : ''}</div></div>
+          <div><strong>{c.title}</strong><div className="muted small">{c.hazards.length} hazard{c.hazards.length > 1 ? 's' : ''}</div></div>
           <span className="chev">›</span>
         </button>
       ))}

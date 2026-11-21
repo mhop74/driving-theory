@@ -7,7 +7,7 @@ A single-user web app for learning and practising the **DVSA car (category B) th
 | Part | Official format | In the app |
 |---|---|---|
 | Multiple choice | 50 questions, 57 minutes, pass mark 43. Includes a 3-question case study (a video clip in the real test). | Timed mock with flag and review. 47 questions spread across the 14 DVSA topics, plus a written 3-question case study. |
-| Hazard perception | 14 clips with 15 developing hazards, scored 0–5 each, pass mark 44/75. | Animated top-down clips with DVSA-style 5-band scoring windows and a check for constant or rhythmic clicking. |
+| Hazard perception | 14 clips with 15 developing hazards, scored 0–5 each, pass mark 44/75. | First-person 3D clips in a blocky voxel style (three.js), with a 2D fallback. Scoring uses DVSA-style 5-band windows and a check for constant or rhythmic clicking. 3D windows start when the hazard is first visible from the driver's seat (`scripts/probe-3d-windows.cjs`). |
 
 - **Learning mode:** topic lessons, practice with instant feedback and Highway Code references, spaced repetition, and road sign flashcards.
 - **Testing mode:** full mock test, topic tests, a weak-spots test and a full hazard perception mock.
