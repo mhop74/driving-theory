@@ -94,7 +94,6 @@ const OFFICIAL_LINKS = [
   { href: 'https://www.youtube.com/watch?v=SdQRkmdhwJs', title: 'Hazard perception test: official DVSA guide', note: 'Video (YouTube): when to click and how scoring works' },
   { href: 'https://www.gov.uk/theory-test/hazard-perception-test', title: 'How the hazard perception test works', note: 'GOV.UK: the official test format and scoring' },
   { href: 'https://www.gov.uk/government/news/hazard-perception-clips-get-a-modern-makeover', title: 'Example of an official CGI test clip', note: 'GOV.UK news story with a DVSA video' },
-  { href: 'https://www.safedrivingforlife.info/shop/official-dvsa-guide-hazard-perception-elearning/', title: 'The Official DVSA Guide to Hazard Perception', note: 'Paid: many more practice clips in the real test style' },
 ];
 
 export function OfficialLinks() {
