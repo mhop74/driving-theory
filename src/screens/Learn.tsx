@@ -4,7 +4,7 @@ import type { TopicId } from '../data/types';
 import { topicProgress } from '../lib/readiness';
 import { useStore } from '../lib/useStore';
 import { go } from '../lib/router';
-import { Sign, SIGN_CARDS } from '../components/Sign';
+import { Sign, SIGN_CARDS, SIGN_GROUPS, type SignGroup } from '../components/Sign';
 import { update } from '../lib/store';
 import { shuffle } from '../lib/random';
 
@@ -70,16 +70,21 @@ const DAY = 86_400_000;
 
 export function Signs() {
   const store = useStore();
-  const makeDeck = () => {
+  const [filter, setFilter] = useState<SignGroup | 'All'>('All');
+  const pool = (f: SignGroup | 'All') => SIGN_CARDS.filter((c) => f === 'All' || c.group === f);
+  const makeDeck = (f: SignGroup | 'All') => {
     const now = Date.now();
-    const dueFirst = SIGN_CARDS.filter((c) => (store.signs[c.id]?.due ?? 0) <= now);
-    return shuffle(dueFirst.length ? dueFirst : SIGN_CARDS);
+    const cards = pool(f);
+    const dueFirst = cards.filter((c) => (store.signs[c.id]?.due ?? 0) <= now);
+    return shuffle(dueFirst.length ? dueFirst : cards);
   };
-  const [deck, setDeck] = useState(makeDeck);
+  const [deck, setDeck] = useState(() => makeDeck('All'));
   const [i, setI] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [browse, setBrowse] = useState(false);
   const card = deck[i];
+
+  function choose(f: SignGroup | 'All') { setFilter(f); setDeck(makeDeck(f)); setI(0); setFlipped(false); }
 
   function rate(known: boolean) {
     update((s) => {
@@ -91,7 +96,8 @@ export function Signs() {
     setI(i + 1);
   }
 
-  const known = SIGN_CARDS.filter((c) => (store.signs[c.id]?.box ?? 0) >= 2).length;
+  const cards = pool(filter);
+  const known = cards.filter((c) => (store.signs[c.id]?.box ?? 0) >= 2).length;
 
   return (
     <div className="stack">
@@ -100,9 +106,16 @@ export function Signs() {
         <button className={!browse ? 'on' : ''} onClick={() => setBrowse(false)}>Flashcards</button>
         <button className={browse ? 'on' : ''} onClick={() => setBrowse(true)}>Browse all</button>
       </div>
-      <p className="muted small center">{known}/{SIGN_CARDS.length} signs learned · Circles give orders, triangles warn, rectangles inform.</p>
+      <div className="chips" role="group" aria-label="Sign type">
+        {(['All', ...SIGN_GROUPS] as const).map((g) => (
+          <button key={g} className={`chip ${filter === g ? 'on' : ''}`} onClick={() => choose(g)}>
+            {g} <span>{pool(g).length}</span>
+          </button>
+        ))}
+      </div>
+      <p className="muted small center">{known}/{cards.length} learned · Circles give orders, triangles warn, rectangles inform.</p>
       {browse ? (
-        ['Orders', 'Warnings', 'Information'].map((g) => (
+        SIGN_GROUPS.filter((g) => filter === 'All' || g === filter).map((g) => (
           <div key={g} className="card">
             <h3>{g}</h3>
             <div className="sign-grid">
@@ -130,9 +143,10 @@ export function Signs() {
       ) : (
         <div className="card center">
           <h3>Deck complete</h3>
-          <button className="btn primary" onClick={() => { setDeck(shuffle(SIGN_CARDS)); setI(0); }}>Go again</button>
+          <button className="btn primary" onClick={() => { setDeck(shuffle(cards)); setI(0); }}>Go again</button>
         </div>
       )}
+      <p className="muted small center">Sign images: The Highway Code – Traffic signs (DfT). Crown copyright, Open Government Licence v3.0.</p>
     </div>
   );
 }

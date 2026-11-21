@@ -13,7 +13,9 @@ A single-user web app for learning and practising the **DVSA car (category B) th
 - **Testing mode:** full mock test, topic tests, a weak-spots test and a full hazard perception mock.
 - **Readiness:** a score with a "Ready to book" verdict. It needs your last 3 mocks at 45/50 or higher, every topic at 85% or higher, at least 90% of the bank seen, and your last 3 hazard perception mocks at 55/75 or higher.
 
-The questions are original. They are written from the Highway Code and *Know Your Traffic Signs* (Open Government Licence) and are not DVSA's licensed question bank.
+**Road signs:** every sign in *The Highway Code – Traffic signs* booklet (164 images) is used in the flashcards and the sign questions. They were extracted with `scripts/extract-signs.py`, `scripts/segment-signs.py` and `scripts/extract-signs-rest.py`. © Crown copyright, used under the Open Government Licence v3.0.
+
+The written questions are original. They are written from the Highway Code and *Know Your Traffic Signs* (Open Government Licence) and are not DVSA's licensed question bank.
 
 ## Deploying to GitHub Pages
 

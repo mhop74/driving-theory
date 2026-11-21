@@ -2,16 +2,23 @@
 // (Department for Transport, Crown copyright, Open Government Licence v3.0).
 // The images are in public/signs/<id>.png.
 
+import { EXTRA_SIGNS } from '../data/extraSigns';
+
+/** Renders a sign image no taller than `size`; wide signs may grow up to 2.6× wider (but never beyond their container). */
 export function Sign({ id, size = 96 }: { id: string; size?: number }) {
   return (
-    <img className="sign" src={`./signs/${id}.png`} alt="Road sign" width={size} height={size}
-      style={{ width: size, height: size, objectFit: 'contain' }} loading="lazy" decoding="async" />
+    <img className="sign" src={`./signs/${id}.png`} alt="Road sign"
+      style={{ maxHeight: size, maxWidth: `min(100%, ${Math.round(size * 2.6)}px)`, minHeight: Math.round(size * 0.3) }}
+      loading="lazy" decoding="async" />
   );
 }
 
-export interface SignCard { id: string; meaning: string; group: 'Orders' | 'Warnings' | 'Information'; note?: string }
+export type SignGroup = 'Orders' | 'Warnings' | 'Direction' | 'Information' | 'Road works';
+export const SIGN_GROUPS: SignGroup[] = ['Orders', 'Warnings', 'Direction', 'Information', 'Road works'];
 
-export const SIGN_CARDS: SignCard[] = [
+export interface SignCard { id: string; meaning: string; group: SignGroup; note?: string }
+
+const CURATED: SignCard[] = [
   // Signs giving orders
   { id: 'stop', meaning: 'Stop and give way', group: 'Orders', note: 'The only octagonal sign. Stop at the line.' },
   { id: 'give-way', meaning: 'Give way to traffic on major road', group: 'Orders', note: 'The only inverted triangle.' },
@@ -75,7 +82,7 @@ export const SIGN_CARDS: SignCard[] = [
   { id: 'side-winds', meaning: 'Side winds', group: 'Warnings' },
   { id: 'hump-bridge', meaning: 'Hump bridge', group: 'Warnings' },
   { id: 'quayside', meaning: 'Quayside or river bank', group: 'Warnings' },
-  { id: 'roadworks', meaning: 'Road works', group: 'Warnings' },
+  { id: 'roadworks', meaning: 'Road works', group: 'Road works' },
   // Information and direction signs
   { id: 'one-way', meaning: 'One-way traffic', group: 'Information', note: 'Compare with the circular "Ahead only" sign.' },
   { id: 'dead-end', meaning: 'No through road for vehicles', group: 'Information' },
@@ -85,8 +92,11 @@ export const SIGN_CARDS: SignCard[] = [
   { id: 'start-motorway', meaning: 'Start of motorway (motorway regulations apply)', group: 'Information' },
   { id: 'end-motorway', meaning: 'End of motorway', group: 'Information' },
   { id: 'countdown', meaning: 'Countdown marker at motorway exit (each bar = 100 yards)', group: 'Information' },
-  { id: 'motorway', meaning: 'Motorway sign (blue background)', group: 'Information' },
-  { id: 'primary', meaning: 'Primary route sign (green background)', group: 'Information' },
-  { id: 'local', meaning: 'Non-primary or local route (white background, black border)', group: 'Information' },
-  { id: 'tourist', meaning: 'Tourist attraction (brown background)', group: 'Information' },
+  { id: 'motorway', meaning: 'Motorway sign (blue background)', group: 'Direction' },
+  { id: 'primary', meaning: 'Primary route sign (green background)', group: 'Direction' },
+  { id: 'local', meaning: 'Non-primary or local route (white background, black border)', group: 'Direction' },
+  { id: 'tourist', meaning: 'Tourist attraction (brown background)', group: 'Direction' },
 ];
+
+/** Every sign in the Highway Code traffic signs booklet. */
+export const SIGN_CARDS: SignCard[] = [...CURATED, ...EXTRA_SIGNS];
