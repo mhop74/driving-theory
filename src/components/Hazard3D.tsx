@@ -6,7 +6,7 @@ import { camAt, lerpKeys } from './HazardPlayer';
 // First-person 3D renderer for hazard perception clips.
 // It reuses the clip's 2D timeline (and so its scoring windows) and maps it into metres:
 //   along the road: 1 px = LONG metres; across the road: see lat().
-const LONG = 0.12;
+const LONG = 0.09;           // ≈14 mph cruising on the residential street
 const ROAD_HALF = 4;           // 8 m wide residential road
 const OWN_LANE_X = -1.0;       // centre of your car (UK: left of the centre line)
 const DRIVER_OFFSET = 0.35;    // right-hand-drive seat
@@ -172,6 +172,30 @@ function buildStreet(scene: THREE.Scene, y0: number, y1: number) {
 
 // ---------- actors ----------
 
+/** Football radius. A real size-5 ball is 0.11 m; slightly larger so it reads clearly on a phone screen. */
+const BALL_R = 0.16;
+
+function footballTexture() {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 128;
+  const g = c.getContext('2d')!;
+  g.fillStyle = '#f7f7f4'; g.fillRect(0, 0, 256, 128);
+  g.fillStyle = '#151515';
+  const pent = (x: number, y: number, r: number) => {
+    g.beginPath();
+    for (let i = 0; i < 5; i++) {
+      const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+      g.lineTo(x + r * Math.cos(a), y + r * Math.sin(a));
+    }
+    g.closePath(); g.fill();
+  };
+  for (let i = 0; i < 5; i++) { pent(i * 51.2 + 12, 30, 13); pent(i * 51.2 + 38, 92, 13); }
+  pent(128, 4, 30); pent(128, 124, 30);
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
 interface ActorView {
   actor: Actor;
   obj: THREE.Object3D;
@@ -193,9 +217,8 @@ function makeActorModel(a: Actor): ActorView {
     case 'ped': { const p = makePerson(1.72, color); return { actor: a, obj: p.group, person: p, heading: 0, stride: 0 }; }
     case 'child': { const p = makePerson(1.15, color, '#3a4a6a', '#e8c09a', '#6b4423'); return { actor: a, obj: p.group, person: p, heading: 0, stride: 0 }; }
     case 'ball': {
-      const ball = new THREE.Mesh(new THREE.SphereGeometry(0.12, 18, 14), mat('#d62828', { roughness: 0.4 }));
-      const stripe = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.015, 6, 24), mat('#ffffff'));
-      ball.add(stripe); ball.castShadow = true;
+      const ball = new THREE.Mesh(new THREE.SphereGeometry(BALL_R, 24, 18), new THREE.MeshStandardMaterial({ map: footballTexture(), roughness: 0.55 }));
+      ball.castShadow = true;
       return { actor: a, obj: ball, heading: 0, stride: 0 };
     }
     default: {
@@ -222,7 +245,7 @@ function placeActor(v: ActorView, t: number, dt: number) {
     v.heading = Math.atan2(dx, dz);
     if (a.revUntil !== undefined && t < a.revUntil) v.heading += Math.PI;
   }
-  v.obj.position.set(X, a.kind === 'ball' ? 0.12 : 0, fwd(y));
+  v.obj.position.set(X, a.kind === 'ball' ? BALL_R : 0, fwd(y));
   v.obj.rotation.y = -v.heading;
   if (v.person) {
     if (speed > 0.1) v.stride += dt * Math.min(9, 3 + speed * 3);
@@ -232,7 +255,7 @@ function placeActor(v: ActorView, t: number, dt: number) {
   } else if (a.kind === 'ball') {
     v.stride += speed * dt;
     v.obj.rotation.set(0, -v.heading, 0);
-    v.obj.rotateX(-v.stride / 0.12);
+    v.obj.rotateX(-v.stride / BALL_R);
   }
   if (v.vehicle) {
     const blink = Math.floor(t * 2.5) % 2 === 0;
