@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { CLIPS, type Clip } from '../data/clips';
 import { HazardPlayer, Timeline } from '../components/HazardPlayer';
 import { scoreClip, type ClipScore } from '../lib/hp';
@@ -7,6 +7,19 @@ import { shuffle } from '../lib/random';
 import { update } from '../lib/store';
 import { useStore } from '../lib/useStore';
 import { go } from '../lib/router';
+
+const Hazard3DPlayer = lazy(() => import('../components/Hazard3D'));
+/** Clips that have been upgraded to the first-person 3D view. */
+const THREE_D = new Set(['ball']);
+
+function Player(props: { clip: Clip; onDone: (clicks: number[]) => void; review?: { clicks: number[] } }) {
+  if (!THREE_D.has(props.clip.id)) return <HazardPlayer {...props} />;
+  return (
+    <Suspense fallback={<div className="card center"><p className="muted">Loading 3D scene…</p></div>}>
+      <Hazard3DPlayer {...props} />
+    </Suspense>
+  );
+}
 
 export function HazardHome() {
   const store = useStore();
@@ -34,7 +47,7 @@ export function HazardHome() {
       <h3 className="section">Practise a single clip</h3>
       {CLIPS.map((c) => (
         <button key={c.id} className="card topic-row" onClick={() => go(`hazard/clip/${c.id}`)}>
-          <div><strong>{c.title}</strong><div className="muted small">{c.hazards.length} hazard{c.hazards.length > 1 ? 's' : ''}</div></div>
+          <div><strong>{c.title}</strong>{THREE_D.has(c.id) && <span className="badge">3D</span>}<div className="muted small">{c.hazards.length} hazard{c.hazards.length > 1 ? 's' : ''}</div></div>
           <span className="chev">›</span>
         </button>
       ))}
@@ -61,10 +74,10 @@ export function HazardClip({ id }: { id: string }) {
       <button className="btn ghost small back" onClick={() => go('hazard')}>‹ Hazard perception</button>
       <h2>{clip.title}</h2>
       {phase.kind === 'intro' && <Intro onStart={() => { setRun(run + 1); setPhase({ kind: 'play' }); }} />}
-      {phase.kind === 'play' && <HazardPlayer key={run} clip={clip} onDone={done} />}
+      {phase.kind === 'play' && <Player key={run} clip={clip} onDone={done} />}
       {(phase.kind === 'result' || phase.kind === 'review') && (
         <>
-          {phase.kind === 'review' && <HazardPlayer key={`r${run}`} clip={clip} review={{ clicks: phase.clicks }} onDone={() => {}} />}
+          {phase.kind === 'review' && <Player key={`r${run}`} clip={clip} review={{ clicks: phase.clicks }} onDone={() => {}} />}
           <ClipResult clip={clip} clicks={phase.clicks} score={phase.score} />
           <div className="quiz-actions">
             <button className="btn" onClick={() => { setRun(run + 1); setPhase({ ...phase, kind: 'review' }); }}>Watch with scoring window</button>
@@ -149,7 +162,7 @@ export function HazardMock() {
         <div className="quiz-title"><strong>Hazard perception mock</strong><span className="muted">Clip {i + 1} of {clips.length}</span></div>
         <span />
       </div>
-      {playing ? <HazardPlayer key={i} clip={clips[i]} onDone={done} />
+      {playing ? <Player key={i} clip={clips[i]} onDone={done} />
         : <Intro onStart={() => setPlaying(true)} label={i === 0 ? 'Start first clip' : `Start clip ${i + 1}`} />}
     </div>
   );

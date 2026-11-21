@@ -3,7 +3,7 @@ import type { Actor, Clip, Key, Kind } from '../data/clips';
 
 const W = 360, H = 560, CAR_Y = 440, OWN_X = 150;
 
-function lerpKeys(keys: Key[] | [number, number][], t: number): number[] {
+export function lerpKeys(keys: Key[] | [number, number][], t: number): number[] {
   const k = keys as number[][];
   if (t <= k[0][0]) return k[0].slice(1);
   for (let i = 1; i < k.length; i++) {
