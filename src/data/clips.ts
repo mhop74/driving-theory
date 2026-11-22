@@ -217,12 +217,14 @@ export const CLIPS: Clip[] = [
     cam: [[0, 0], [8, 560], [10, 680], [12, 795], [14, 815], [15, 825], [22, 1250]],
     layout: { drive: [{ y: 950, side: 'L' }] },
     actors: [
-      { kind: 'car', keys: [[0, 62, 950], [9.5, 62, 950], [11, 122, 950], [12.2, 150, 958], [13, 150, 960], [14, 150, 1000], [22, 150, 1500]], color: '#7f8c8d', revUntil: 13, face: -90 },
+      // keys from the UE build's hazard/reverseclip.py: the car's rear swings towards you as it backs out
+      { kind: 'car', keys: [[0, 62, 950], [9.5, 62, 950], [11, 118.3, 950], [12.2, 148.3, 940], [13, 148.3, 940], [14, 148.3, 1000], [22, 148.3, 1500]], color: '#7f8c8d', revUntil: 13, face: -90 },
       oncoming(1800),
     ],
     hazards: [{ start: 9.2, end: 13.2, label: 'Car reverses out of the driveway' }],
     focus: [0],
     explain: 'Reversing lights came on, then the car backed out into the road. Look for clues such as exhaust smoke and reversing lights.',
+    video: { src: 'videos/reverse.mp4', poster: 'videos/reverse.jpg' },
   },
   {
     id: 'turn-across', title: 'Oncoming car turns across you', duration: 22,

@@ -34,6 +34,7 @@ Some clips are rendered in Unreal Engine 5 from the same clip data and played as
 | `overtaker` (Country road overtaker) | `public/videos/overtaker.mp4`: 1080p, 30 fps, 22 s, sunny; country lane with bends, box truck as the lorry |
 | `bus` (Bus at a bus stop) | `public/videos/bus.mp4`: 1080p, 30 fps, 24 s, overcast with light rain; semi-detached street, yellow bus, people in bright waterproofs |
 | `door` (Parked car door opens) | `public/videos/door.mp4`: 1080p, 30 fps, 23 s, broken cloud; semi-detached street, orange Mercedes-AMG GT (Car Interaction pack) whose driver opens the door into the road |
+| `reverse` (Car reversing from a driveway) | `public/videos/reverse.mp4`: 1080p, 30 fps, 22 s, overcast; detached brick houses (Buildings04) with driveways, Vehicle Variety Pack cars |
 | `turn-right` (Car ahead turning right) | `public/videos/turn-right.mp4`: 1080p, 30 fps, 22 s |
 | `double` (High street, two hazards) | `public/videos/double.mp4`: 1080p, 30 fps, 28 s |
 | `tractor` (Vehicle from a field) | `public/videos/tractor.mp4`: 1080p, 30 fps, 26 s. A red pickup plays the tractor; scoring window 9.5–13.5 s (`video.windows`) |
