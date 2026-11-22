@@ -164,6 +164,7 @@ export const CLIPS: Clip[] = [
     hazards: [{ start: 7.8, end: 11.8, label: 'Car in front brakes to turn right' }],
     focus: [0],
     explain: 'The car ahead was signalling right. When its brake lights came on, it was slowing to stop and turn.',
+    video: { src: 'videos/turn-right.mp4', poster: 'videos/turn-right.jpg' },
   },
   {
     id: 'horse', title: 'Horse rider on a country lane', duration: 22,
