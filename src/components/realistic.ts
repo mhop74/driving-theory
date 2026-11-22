@@ -214,7 +214,7 @@ export function setupEnvironment(renderer: THREE.WebGLRenderer, scene: THREE.Sce
 
 // ---------------- world: British residential street ----------------
 
-function house(root: THREE.Group, side: number, z: number, ROAD_HALF: number, rand: (s: number) => number, seed: number) {
+function house(root: THREE.Group, side: number, z: number, ROAD_HALF: number, rand: (s: number) => number, seed: number, driveway = false) {
   const tones = ['#8e4a32', '#9c5236', '#7f4430', '#a8623f', '#93583f'];
   const front = side * (ROAD_HALF + 2.4 + 4.5);   // pavement + front garden
   const depth = 8, h = 5.6, w = 5.4;
@@ -250,6 +250,10 @@ function house(root: THREE.Group, side: number, z: number, ROAD_HALF: number, ra
   root.add(box(0.6, 0.08, 1.4, plastic('#e9e9e6', 0.5), fx - side * 0.3, 2.3, z + 1.5)); // door canopy
   // front garden: lawn, path, low wall, and sometimes a wheelie bin
   const garden = front - side * 2.25;
+  if (driveway) {
+    root.add(ground(4.4, 3.2, pbr('blockpave', { map: slabTex(), color: '#b8a48e', roughness: 0.9 }), side * (ROAD_HALF + 2.4 + 2.2), z, 0.03, 0.5));
+    return;
+  }
   root.add(box(0.3, 0.6, w - 1.2, pbr(`brick${seed % 5}`, {}), side * (ROAD_HALF + 2.55), 0.3, z - 0.6, true));
   root.add(box(0.36, 0.06, w - 1.2, plastic('#c9c3b6', 0.8), side * (ROAD_HALF + 2.55), 0.63, z - 0.6, false));
   if (rand(seed + 5) > 0.4) {
@@ -279,23 +283,151 @@ function tree(root: THREE.Group, x: number, z: number, rand: (s: number) => numb
   }
 }
 
-export function buildWorld(scene: THREE.Scene, _clip: Clip, y0: number, y1: number, geo: Geo) {
+interface Zone { z0: number; z1: number }
+const inZones = (zs: Zone[], z: number, pad = 0) => zs.some((q) => z > q.z1 - pad && z < q.z0 + pad);
+
+function textPlane(text: string, w: number, h: number, color: string) {
+  const t = canvasTex(`text${text}${color}`, 256, (g, sz) => {
+    g.clearRect(0, 0, sz, sz); g.fillStyle = color;
+    g.font = `bold ${sz * 0.32}px Arial, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    const words = text.split(' ');
+    words.forEach((wd, i) => g.fillText(wd, sz / 2, sz / 2 + (i - (words.length - 1) / 2) * sz * 0.36));
+  });
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshStandardMaterial({ map: t, transparent: true, roughness: 0.6 }));
+  m.rotation.x = -Math.PI / 2;
+  return m;
+}
+
+function hedgerow(root: THREE.Group, x: number, z0: number, z1: number, rand: (s: number) => number) {
+  const m = pbr('hedge', { map: hedgeTex(), roughness: 0.95 });
+  for (let z = z0, i = 0; z > z1; z -= 4, i++) {
+    const seg = Math.min(4, z - z1);
+    const h = 1.6 + rand(i * 3 + x) * 0.6;
+    root.add(box(1.2 + rand(i * 5 + x) * 0.3, h, seg + 0.2, m, x, h / 2, z - seg / 2, true, 1.5));
+  }
+}
+
+export function buildWorld(scene: THREE.Scene, clip: Clip, y0: number, y1: number, geo: Geo) {
   const { fwd, ROAD_HALF, rand } = geo;
+  const L = clip.layout, rural = !!L.rural;
   const z0 = fwd(y0), z1 = fwd(y1), len = z0 - z1, zc = (z0 + z1) / 2;
+  const SIDE_HALF = 3.6;
+  const sideOf = (q: 'L' | 'R') => (q === 'L' ? -1 : 1);
+  const gaps: Record<number, Zone[]> = { [-1]: [], [1]: [] };
+  for (const q of L.side ?? []) gaps[sideOf(q.side)].push({ z0: fwd(q.y) + SIDE_HALF, z1: fwd(q.y) - SIDE_HALF });
+  for (const q of L.gate ?? []) gaps[sideOf(q.side)].push({ z0: fwd(q.y) + 2.6, z1: fwd(q.y) - 2.6 });
+  const drives: Record<number, Zone[]> = { [-1]: [], [1]: [] };
+  for (const q of L.drive ?? []) drives[sideOf(q.side)].push({ z0: fwd(q.y) + 1.8, z1: fwd(q.y) - 1.8 });
+  const zebras = (L.zebra ?? []).map(fwd);
+
   const root = new THREE.Group();
-  root.add(ground(ROAD_HALF * 2, len, pbr('asphalt', { map: asphaltTex(), roughness: 0.92 }), 0, zc, 0, 4));
+  const asphalt = pbr('asphalt', { map: asphaltTex(), roughness: 0.92 });
+  root.add(ground(ROAD_HALF * 2, len, asphalt, 0, zc, 0, 4));
   const lineM = pbr('roadline', { color: '#ecebe4', roughness: 0.6 });
-  for (let z = z0; z > z1; z -= 9) root.add(ground(0.12, 4, lineM, 0, z - 2, 0.006));
+  const skipLine = (z: number) => inZones(gaps[-1], z, 3) || inZones(gaps[1], z, 3) || zebras.some((q) => Math.abs(z - q) < 14);
+  for (let z = z0; z > z1; z -= 9) if (!skipLine(z - 2)) root.add(ground(0.12, 4, lineM, 0, z - 2, 0.006));
+
   for (const side of [-1, 1]) {
-    root.add(box(0.25, 0.13, len, pbr('kerb', { map: slabTex(), color: '#c9c6bf', roughness: 0.85 }), side * (ROAD_HALF + 0.12), 0.065, zc, false, 1.2));
-    root.add(box(2.15, 0.11, len, pbr('slab', { map: slabTex(), roughness: 0.88 }), side * (ROAD_HALF + 1.32), 0.055, zc, false, 1.2));
-    root.add(ground(60, len, pbr('grass', { map: grassTex(), roughness: 0.95 }), side * (ROAD_HALF + 2.4 + 30), zc, 0.02, 2));
-    // drains every 25 m
-    for (let z = z0 - 7; z > z1; z -= 25) root.add(ground(0.35, 0.6, plastic('#262626', 0.6), side * (ROAD_HALF - 0.25), z, 0.008));
-    let i = 0;
-    for (let z = z0 - 3; z > z1; z -= 5.6, i++) house(root, side, z, ROAD_HALF, rand, i * 2 + (side > 0 ? 1 : 0));
-    for (let z = z0 - 12, j = 0; z > z1; z -= 32, j++) lamp(root, side * (ROAD_HALF + 0.55), z + (side > 0 ? 16 : 0), side);
-    for (let z = z0 - 20, j = 0; z > z1; z -= 27, j++) if (rand(j * 11 + side) > 0.45) tree(root, side * (ROAD_HALF + 4.2), z, rand, j * 13 + (side > 0 ? 5 : 0));
+    const sorted = [...gaps[side]].sort((a, b) => b.z0 - a.z0);
+    const runs: Zone[] = [];
+    let cur = z0;
+    for (const g of sorted) { if (g.z0 < cur) runs.push({ z0: cur, z1: g.z0 }); cur = Math.min(cur, g.z1); }
+    runs.push({ z0: cur, z1 });
+    if (rural) {
+      // country lane: grass verge, hedgerows, fields, trees and telegraph poles
+      root.add(ground(2.2, len, pbr('verge', { map: grassTex(), color: '#c9d9b4', roughness: 0.95 }), side * (ROAD_HALF + 1.1), zc, 0.01, 2));
+      root.add(ground(80, len, pbr('field', { map: grassTex(), color: '#d7e3b0', roughness: 0.95 }), side * (ROAD_HALF + 42), zc, 0.0, 3));
+      for (const r of runs) if (r.z0 - r.z1 > 1) hedgerow(root, side * (ROAD_HALF + 2.6), r.z0, r.z1, rand);
+      for (let z = z0 - 18, i = 0; z > z1; z -= 26, i++) if (rand(i * 3 + side * 7) > 0.5 && !inZones(gaps[side], z, 5)) tree(root, side * (ROAD_HALF + 2.8), z, rand, i * 17 + side);
+      if (side > 0) for (let z = z0 - 10; z > z1; z -= 45) {
+        if (inZones(gaps[side], z, 3)) continue;
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 8, 8), plastic('#6b5240', 0.9));
+        pole.position.set(side * (ROAD_HALF + 1.6), 4, z); pole.castShadow = true; root.add(pole);
+        root.add(box(1.4, 0.1, 0.1, plastic('#6b5240', 0.9), side * (ROAD_HALF + 1.6), 7.6, z));
+      }
+      for (const q of (L.gate ?? []).filter((g) => sideOf(g.side) === side)) {
+        const z = fwd(q.y);
+        root.add(ground(26, 4.6, pbr('mud', { map: asphaltTex(), color: '#a08463', roughness: 1 }), side * (ROAD_HALF + 13), z, 0.012, 3));
+        for (const e of [-1, 1]) {
+          const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1.5, 8), plastic('#6e5a44', 0.9));
+          post.position.set(side * (ROAD_HALF + 2.6), 0.75, z + e * 2.5); post.castShadow = true; root.add(post);
+        }
+        const gate = new THREE.Group();
+        for (let k = 0; k < 5; k++) gate.add(box(0.06, 0.08, 3.4, plastic('#c4c0b4', 0.6), 0, 0.25 + k * 0.25, 1.7));
+        gate.position.set(side * (ROAD_HALF + 2.6), 0, z - 2.5); gate.rotation.y = side * 1.4; root.add(gate);
+      }
+    } else {
+      const kerbM = pbr('kerb', { map: slabTex(), color: '#c9c6bf', roughness: 0.85 });
+      const slabM = pbr('slab', { map: slabTex(), roughness: 0.88 });
+      root.add(ground(60, len, pbr('grass', { map: grassTex(), roughness: 0.95 }), side * (ROAD_HALF + 2.4 + 30), zc, 0.02, 2));
+      for (const r of runs) {
+        const rl = r.z0 - r.z1; if (rl < 0.5) continue;
+        const rz = (r.z0 + r.z1) / 2;
+        root.add(box(0.25, 0.13, rl, kerbM, side * (ROAD_HALF + 0.12), 0.065, rz, false, 1.2));
+        root.add(box(2.15, 0.11, rl, slabM, side * (ROAD_HALF + 1.32), 0.055, rz, false, 1.2));
+      }
+      for (let z = z0 - 7; z > z1; z -= 25) if (!inZones(gaps[side], z, 1)) root.add(ground(0.35, 0.6, plastic('#262626', 0.6), side * (ROAD_HALF - 0.25), z, 0.008));
+      let i = 0;
+      for (let z = z0 - 3; z > z1; z -= 5.6, i++) {
+        if (inZones(gaps[side], z, 4)) continue;
+        house(root, side, z, ROAD_HALF, rand, i * 2 + (side > 0 ? 1 : 0), inZones(drives[side], z, 1));
+      }
+      for (let z = z0 - 12 - (side > 0 ? 16 : 0); z > z1; z -= 32) if (!inZones(gaps[side], z, 3) && !zebras.some((q) => Math.abs(z - q) < 6)) lamp(root, side * (ROAD_HALF + 0.55), z, side);
+      for (let z = z0 - 20, j = 0; z > z1; z -= 27, j++) if (rand(j * 11 + side) > 0.45 && !inZones(gaps[side], z, 5) && !inZones(drives[side], z, 3)) tree(root, side * (ROAD_HALF + 4.2), z, rand, j * 13 + (side > 0 ? 5 : 0));
+      // side roads: tarmac, kerbs and pavements turning the corner, give way lines
+      for (const q of (L.side ?? []).filter((g) => sideOf(g.side) === side)) {
+        const z = fwd(q.y);
+        root.add(ground(40, SIDE_HALF * 2, asphalt, side * (ROAD_HALF + 20), z, 0.003, 4));
+        for (const e of [-1, 1]) {
+          root.add(box(40, 0.13, 0.25, kerbM, side * (ROAD_HALF + 20), 0.065, z + e * (SIDE_HALF + 0.12), false, 1.2));
+          root.add(box(40, 0.11, 2.15, slabM, side * (ROAD_HALF + 20), 0.055, z + e * (SIDE_HALF + 1.32), false, 1.2));
+        }
+        for (const off of [0.35, 0.8]) for (let k = -SIDE_HALF + 0.3; k < SIDE_HALF - 0.3; k += 0.9) root.add(ground(0.2, 0.6, lineM, side * (ROAD_HALF + off), z + k + 0.3, 0.012));
+        root.add(ground(SIDE_HALF * 2 - 0.4, 0.1, lineM, side * (ROAD_HALF + 12), z, 0.008));
+      }
+    }
+  }
+  // zebra crossings: stripes, zigzags and flashing Belisha beacons
+  for (const z of zebras) {
+    for (let x = -ROAD_HALF + 0.35; x < ROAD_HALF - 0.2; x += 1.0) root.add(ground(0.5, 3.2, lineM, x + 0.25, z, 0.008));
+    for (const e of [-1, 1]) root.add(ground(ROAD_HALF * 2, 0.1, lineM, 0, z + e * 2.6, 0.008));
+    for (const side of [-1, 1]) {
+      for (let k = 0; k < 9; k++) for (const dir of [-1, 1]) {
+        const zz = z + dir * (3.4 + k * 1.1);
+        for (const x of [side * (ROAD_HALF - 0.35), side * 0.25]) {
+          const zig = ground(0.1, 1.15, lineM, x + (k % 2 ? 0.12 : -0.12), zz, 0.008);
+          zig.rotation.z = k % 2 ? 0.25 : -0.25; root.add(zig);
+        }
+      }
+      const px = side * (ROAD_HALF + 0.5);
+      for (let k = 0; k < 7; k++) {
+        const band = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.4, 10), plastic(k % 2 ? '#111111' : '#f2f2f2', 0.5));
+        band.position.set(px, 0.2 + k * 0.4, z + 2.9); band.castShadow = true; root.add(band);
+      }
+      const globe = new THREE.Mesh(new THREE.SphereGeometry(0.19, 16, 12), live('#a86b00'));
+      globe.position.set(px, 3.0, z + 2.9); globe.userData.beacon = true;
+      scene.add(globe);
+    }
+  }
+  // bus stops: road markings, shelter and bus stop flag
+  for (const q of L.busStop ?? []) {
+    const side = sideOf(q.side), z = fwd(q.y);
+    const yellow = pbr('busyellow', { color: '#f0c419', roughness: 0.6 });
+    root.add(ground(0.15, 16, yellow, side * (ROAD_HALF - 2.8), z, 0.009));
+    for (const e of [-1, 1]) root.add(ground(2.8, 0.15, yellow, side * (ROAD_HALF - 1.4), z + e * 8, 0.009));
+    const word = textPlane('BUS STOP', 2.2, 2.2, '#f0c419');
+    word.rotation.z = side > 0 ? -Math.PI / 2 : Math.PI / 2;
+    word.position.set(side * (ROAD_HALF - 1.4), 0.011, z + 4); scene.add(word);
+    const frame = pbr('shelterframe', { color: '#3a4652', roughness: 0.4, metalness: 0.6 });
+    const glass = pbr('shelterglass', { color: '#cfe3ee', roughness: 0.05, metalness: 0.2, transparent: true, opacity: 0.35 });
+    const sx = side * (ROAD_HALF + 1.9);
+    root.add(box(0.05, 2.2, 3.2, glass, sx + side * 0.7, 1.2, z - 1, false));
+    root.add(box(1.4, 2.2, 0.05, glass, sx, 1.2, z - 2.6, false));
+    root.add(box(1.6, 0.1, 3.4, frame, sx, 2.35, z - 1));
+    for (const [dx, dz] of [[-0.7, -2.6], [0.7, -2.6], [-0.7, 0.6], [0.7, 0.6]]) root.add(box(0.06, 2.3, 0.06, frame, sx + dx, 1.15, z + dz));
+    root.add(box(0.08, 2.9, 0.08, frame, side * (ROAD_HALF + 0.45), 1.45, z + 2));
+    root.add(box(0.05, 0.5, 0.45, plastic('#f4f4f2', 0.4), side * (ROAD_HALF + 0.45), 2.75, z + 2));
+    root.add(box(0.06, 0.24, 0.24, plastic('#c4231a', 0.4), side * (ROAD_HALF + 0.45), 2.8, z + 2, false));
   }
   mergeStatic(scene, root);
 }
@@ -376,12 +508,183 @@ function makePerson(height: number, top: string, seed: number, rand: (s: number)
   return { group: g, wheels: [], legs, arms, halfWidth: 0.3 };
 }
 
+function wheelSet(g: THREE.Group, W: number, zs: number[], r: number, wheels: THREE.Object3D[], width = 0.24) {
+  const tyreM = plastic('#161616', 0.9);
+  for (const z of zs) for (const s of [-1, 1]) {
+    const spin = new THREE.Group();
+    const tyre = new THREE.Mesh(new THREE.CylinderGeometry(r, r, width, 24), tyreM);
+    tyre.rotation.z = Math.PI / 2; tyre.castShadow = true;
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.6, r * 0.6, width + 0.01, 12), pbr('steelhub', { color: '#9ea3a8', roughness: 0.35, metalness: 0.8 }));
+    hub.rotation.z = Math.PI / 2;
+    spin.add(tyre, hub);
+    spin.position.set(s * (W / 2 - width / 2 + 0.02), r, z);
+    g.add(spin); wheels.push(spin);
+  }
+}
+
+function lightsAndPlates(g: THREE.Group, L: Lights, W: number, front: number, rear: number, y: number) {
+  for (const s of [-1, 1]) {
+    g.add(box(0.3, 0.2, 0.06, L.brake, s * (W / 2 - 0.2), y + 0.1, rear, false));
+    g.add(box(0.34, 0.16, 0.06, pbr('headlamp', { color: '#f6f3e8', roughness: 0.1, metalness: 0.3, emissive: '#3a382f' }), s * (W / 2 - 0.24), y, front, false));
+    const ind = s < 0 ? L.indL : L.indR;
+    g.add(box(0.12, 0.12, 0.06, ind, s * (W / 2 - 0.05), y, front, false));
+    g.add(box(0.12, 0.12, 0.06, ind, s * (W / 2 - 0.05), y + 0.3, rear, false));
+  }
+  g.add(box(0.2, 0.1, 0.05, L.reverse, 0, y - 0.15, rear, false));
+  g.add(box(0.52, 0.11, 0.03, plastic('#f2f2ee', 0.4), 0, y - 0.3, front, false));
+  g.add(box(0.52, 0.11, 0.03, plastic('#f2c400', 0.4), 0, y - 0.25, rear, false));
+}
+
+function makeVan(color: string): Model {
+  const g = new THREE.Group(), W = 2.0, L = newLights(), wheels: THREE.Object3D[] = [];
+  const body = paint(color);
+  g.add(profile([[2.6, 0.32], [2.62, 2.35], [-1.15, 2.4], [-1.95, 1.3], [-2.5, 1.05], [-2.6, 0.32]], W, body, 0.06));
+  g.add(profile([[-1.2, 2.25], [-1.9, 1.33], [-2.05, 1.25], [-1.1, 1.25]], W - 0.06, glassMat(), 0.03)); // windscreen
+  for (const s of [-1, 1]) g.add(box(0.03, 0.6, 0.85, glassMat(), s * (W / 2 + 0.03), 1.75, -1.25, false));
+  wheelSet(g, W, [-1.75, 1.75], 0.36, wheels);
+  lightsAndPlates(g, L, W, -2.63, 2.65, 0.9);
+  return { group: g, lights: L, wheels, legs: [], arms: [], halfWidth: W / 2 };
+}
+
+function makeBus(color: string): Model {
+  const g = new THREE.Group(), W = 2.5, L = newLights(), wheels: THREE.Object3D[] = [];
+  const body = paint(color);
+  g.add(profile([[5.5, 0.35], [5.55, 3.05], [-5.45, 3.1], [-5.55, 2.7], [-5.55, 0.35]], W, body, 0.08));
+  for (const s of [-1, 1]) g.add(box(0.03, 1.05, 9.4, glassMat(), s * (W / 2 + 0.06), 2.15, 0.3, false));
+  g.add(box(W - 0.2, 1.4, 0.04, glassMat(), 0, 1.95, -5.6, false));
+  g.add(box(1.6, 0.3, 0.05, pbr('destination', { color: '#111', emissive: '#c48a00', emissiveIntensity: 0.6 }), 0, 2.85, -5.62, false));
+  g.add(box(W + 0.02, 0.25, 11, plastic('#f2f2ee', 0.5), 0, 1.45, 0)); // livery band
+  wheelSet(g, W, [-3.7, 3.5], 0.5, wheels, 0.3);
+  lightsAndPlates(g, L, W, -5.62, 5.62, 0.75);
+  return { group: g, lights: L, wheels, legs: [], arms: [], halfWidth: W / 2 };
+}
+
+function makeLorry(color: string): Model {
+  const g = new THREE.Group(), W = 2.5, L = newLights(), wheels: THREE.Object3D[] = [];
+  g.add(profile([[-2.6, 0.5], [-2.6, 3.0], [-4.7, 3.0], [-4.85, 2.4], [-4.85, 0.5]], W, paint(color), 0.08));
+  g.add(box(W - 0.15, 1.0, 0.04, glassMat(), 0, 2.3, -4.88, false));
+  g.add(box(W, 3.0, 7.2, plastic('#e8e6e0', 0.5), 0, 2.15, 1.1));
+  g.add(box(W - 0.3, 0.3, 9.6, plastic('#2a2a2a', 0.7), 0, 0.55, -0.2));
+  wheelSet(g, W, [-3.7, 1.8, 3.4], 0.5, wheels, 0.3);
+  lightsAndPlates(g, L, W, -4.88, 4.72, 0.8);
+  return { group: g, lights: L, wheels, legs: [], arms: [], halfWidth: W / 2 };
+}
+
+function makeTractor(color: string): Model {
+  const g = new THREE.Group(), L = newLights(), wheels: THREE.Object3D[] = [];
+  const body = paint(color);
+  g.add(profile([[0.1, 0.7], [0.1, 1.55], [-1.95, 1.4], [-2.05, 0.7]], 1.05, body, 0.06)); // bonnet
+  const frame = pbr('cabframe', { color: '#2a2a2a', roughness: 0.5, metalness: 0.4 });
+  for (const [x, z] of [[-0.75, -0.1], [0.75, -0.1], [-0.75, 1.4], [0.75, 1.4]]) g.add(box(0.07, 1.6, 0.07, frame, x, 2.0, z));
+  g.add(box(1.6, 1.4, 1.5, pbr('cabglass', { color: '#24323c', roughness: 0.05, metalness: 0.5, transparent: true, opacity: 0.55 }), 0, 1.95, 0.65, false));
+  g.add(box(1.75, 0.12, 1.7, body, 0, 2.82, 0.65));
+  L.beacon = live('#7a5200');
+  g.add(box(0.22, 0.22, 0.22, L.beacon, 0.6, 3.0, 0.2, false));
+  const tread = plastic('#141414', 0.95);
+  for (const s of [-1, 1]) {
+    const big = new THREE.Group();
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 0.5, 28), tread); t.rotation.z = Math.PI / 2; t.castShadow = true;
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.52, 14), paint('#d8b200')); hub.rotation.z = Math.PI / 2;
+    big.add(t, hub); big.position.set(s * 1.0, 0.85, 1.0); g.add(big); wheels.push(big);
+    const small = new THREE.Group();
+    const t2 = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.3, 22), tread); t2.rotation.z = Math.PI / 2; t2.castShadow = true;
+    const hub2 = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.32, 12), paint('#d8b200')); hub2.rotation.z = Math.PI / 2;
+    small.add(t2, hub2); small.position.set(s * 0.75, 0.45, -1.55); g.add(small); wheels.push(small);
+  }
+  lightsAndPlates(g, L, 1.1, -2.07, 1.8, 1.0);
+  return { group: g, lights: L, wheels, legs: [], arms: [], halfWidth: 1.25 };
+}
+
+function makeCyclist(color: string, seed: number, rand: (s: number) => number): Model {
+  const g = new THREE.Group();
+  const frameM = pbr('bikeframe', { color: '#1f3b5c', roughness: 0.35, metalness: 0.6 });
+  const tube = (a: THREE.Vector3, b: THREE.Vector3, r = 0.022) => {
+    const d = b.clone().sub(a);
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, d.length(), 8), frameM);
+    m.position.copy(a.clone().add(b).multiplyScalar(0.5));
+    m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize());
+    g.add(m);
+  };
+  const V = (z: number, y: number) => new THREE.Vector3(0, y, z);
+  const bb = V(0.05, 0.32), seat = V(0.2, 0.95), head = V(-0.45, 0.95), rear = V(0.55, 0.35), front = V(-0.55, 0.35);
+  tube(bb, seat); tube(bb, head); tube(seat, head); tube(bb, rear); tube(seat, rear); tube(head, front);
+  g.add(box(0.5, 0.03, 0.03, plastic('#222', 0.5), 0, 1.0, -0.47));
+  const wheels: THREE.Object3D[] = [];
+  for (const z of [-0.55, 0.55]) {
+    const w = new THREE.Mesh(new THREE.TorusGeometry(0.33, 0.025, 8, 32), plastic('#151515', 0.8));
+    w.rotation.y = Math.PI / 2; w.position.set(0, 0.35, z); w.castShadow = true; g.add(w); wheels.push(w);
+  }
+  const rider = makePerson(1.75, color, seed, rand, '#1c1c1c');
+  rider.group.position.set(0, 0.05, 0.25); rider.group.rotation.x = -0.4;
+  rider.arms.forEach((a) => (a.rotation.x = -1.05));
+  g.add(rider.group);
+  const helmet = new THREE.Mesh(new THREE.SphereGeometry(0.15, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2), plastic('#f2c500', 0.4));
+  helmet.position.set(0, 1.78, -0.42); helmet.rotation.x = -0.3; g.add(helmet);
+  return { group: g, wheels: [], legs: rider.legs, arms: [], halfWidth: 0.35 };
+}
+
+function makeHorse(color: string, seed: number, rand: (s: number) => number): Model {
+  const g = new THREE.Group();
+  const hide = pbr(`hide${color}`, { color, roughness: 0.7 });
+  const torso = new THREE.Mesh(new THREE.CapsuleGeometry(0.33, 1.1, 6, 14), hide);
+  torso.rotation.x = Math.PI / 2; torso.position.y = 1.35; torso.castShadow = true; g.add(torso);
+  const neck = new THREE.Mesh(new THREE.CapsuleGeometry(0.15, 0.6, 4, 10), hide);
+  neck.position.set(0, 1.85, -0.85); neck.rotation.x = 0.6; neck.castShadow = true; g.add(neck);
+  const headM = new THREE.Mesh(new THREE.CapsuleGeometry(0.11, 0.42, 4, 10), hide);
+  headM.position.set(0, 2.05, -1.2); headM.rotation.x = 1.25; g.add(headM);
+  const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.08, 0.7, 6), plastic('#2a1a10', 0.9));
+  tail.position.set(0, 1.2, 0.95); tail.rotation.x = -0.4; g.add(tail);
+  const legs: THREE.Object3D[] = [];
+  for (const [x, z] of [[-0.17, -0.6], [0.17, -0.6], [-0.17, 0.6], [0.17, 0.6]]) {
+    const p = new THREE.Group(); p.position.set(x, 1.15, z);
+    const l = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.05, 1.1, 8), hide); l.position.y = -0.55; l.castShadow = true;
+    p.add(l); g.add(p); legs.push(p);
+  }
+  const rider = makePerson(1.7, '#d7f000', seed, rand, '#2e2e2e'); // hi-vis tabard
+  rider.group.position.set(0, 0.95, 0.05);
+  rider.legs.forEach((l, i) => { l.rotation.z = i ? -0.45 : 0.45; l.rotation.x = -0.3; });
+  g.add(rider.group);
+  return { group: g, wheels: [], legs, arms: [], halfWidth: 0.4 };
+}
+
+function makeDog(rand: (s: number) => number, seed: number): Model {
+  const g = new THREE.Group();
+  const fur = plastic(['#7b4a1e', '#2b2b2b', '#c8a26a'][Math.floor(rand(seed) * 3)], 0.85);
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.14, 0.42, 4, 10), fur);
+  body.rotation.x = Math.PI / 2; body.position.y = 0.45; body.castShadow = true; g.add(body);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 10), fur); head.position.set(0, 0.62, -0.38); g.add(head);
+  const snout = new THREE.Mesh(new THREE.CapsuleGeometry(0.05, 0.1, 4, 8), fur); snout.rotation.x = Math.PI / 2; snout.position.set(0, 0.58, -0.52); g.add(snout);
+  const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.03, 0.3, 6), fur); tail.position.set(0, 0.6, 0.38); tail.rotation.x = -0.7; g.add(tail);
+  const legs: THREE.Object3D[] = [];
+  for (const [x, z] of [[-0.08, -0.2], [0.08, -0.2], [-0.08, 0.2], [0.08, 0.2]]) {
+    const p = new THREE.Group(); p.position.set(x, 0.35, z);
+    const l = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.03, 0.35, 6), fur); l.position.y = -0.17; p.add(l); g.add(p); legs.push(p);
+  }
+  return { group: g, wheels: [], legs, arms: [], halfWidth: 0.2 };
+}
+
+function makeDoor(color: string): Model {
+  // A car door hinged at its front edge (the group origin) that swings out into the road.
+  const g = new THREE.Group();
+  g.add(box(0.07, 0.6, 1.05, paint(color), 0, 0.68, 0.53));
+  g.add(box(0.05, 0.42, 0.9, glassMat(), 0, 1.2, 0.58, false));
+  return { group: g, wheels: [], legs: [], arms: [], halfWidth: 0.1 };
+}
+
 export const BALL_R = 0.11; // a real size-5 football
 
 export function makeModel(a: Actor, i: number, rand: (s: number) => number): Model | null {
   const color = a.color ?? '#7a8794';
   switch (a.kind) {
     case 'car': return makeCar(color);
+    case 'van': return makeVan(color);
+    case 'bus': return makeBus(color);
+    case 'lorry': return makeLorry(color);
+    case 'tractor': return makeTractor(color);
+    case 'bike': return makeCyclist(color, i * 7 + 2, rand);
+    case 'horse': return makeHorse(color, i * 7 + 4, rand);
+    case 'dog': return makeDog(rand, i);
+    case 'door': return makeDoor('#d35400');
     case 'ped': return makePerson(1.74, color, i * 7 + 1, rand);
     case 'child': return makePerson(1.2, color, i * 7 + 3, rand, '#3d4f73');
     case 'ball': {
@@ -390,30 +693,37 @@ export function makeModel(a: Actor, i: number, rand: (s: number) => number): Mod
       ball.castShadow = true; ball.position.y = BALL_R * 1.4; g.add(ball);
       return { group: g, wheels: [], legs: [], arms: [], halfWidth: BALL_R, inner: ball };
     }
-    default: return null; // other road users fall back to the standard models
+    default: return null;
   }
 }
 
 // ---------------- cockpit ----------------
 
-/** Driver's-eye interior: dashboard, bonnet, A-pillars, mirror. Attach to the camera. */
+/** Driver's-eye interior: dashboard, bonnet, windscreen pillars and mirror, fixed to the camera. */
 export function cockpit(camera: THREE.Camera, driverOffset: number) {
   const trim = plastic('#1b1c1f', 0.75);
   const cx = -driverOffset;
-  // Bonnet: only a slice shows above the dashboard, as from a real driver's seat.
   const bonnet = profile([[0, 0], [-2.0, -0.06], [-2.15, -0.22], [0, -0.22]], 1.75, paint('#1e4f8f'), 0.05);
   bonnet.position.set(cx + 0.825, -0.5, -0.9);
   const dash = box(2.2, 0.3, 0.75, trim, cx, -0.55, -0.78, false);
   const top = box(2.2, 0.02, 0.75, plastic('#26272b', 0.9), cx, -0.395, -0.78, false);
   const sw = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.022, 10, 36), plastic('#121212', 0.5));
   sw.position.set(0, -0.47, -0.42); sw.rotation.x = -0.45;
-  // A-pillars at the edges of the windscreen: these really do hide things from the driver.
-  const pillar = (x: number, lean: number) => {
-    const p = box(0.05, 1.2, 0.07, trim, x, 0.05, -0.98, false);
-    p.rotation.z = lean; p.rotation.x = -0.5; return p;
+  // Windscreen pillars: each runs from the bottom corner of the windscreen (at the dashboard)
+  // back and up to the roof, just like the A-pillars of a real car.
+  const pillar = (bottom: THREE.Vector3, topP: THREE.Vector3) => {
+    const d = topP.clone().sub(bottom);
+    const p = box(0.065, d.length(), 0.08, trim, 0, 0, 0, false);
+    p.position.copy(bottom.clone().add(topP).multiplyScalar(0.5));
+    p.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize());
+    return p;
   };
-  const mirror = box(0.2, 0.06, 0.03, trim, cx + 0.02, 0.4, -0.9, false);
-  mirror.add(box(0.18, 0.045, 0.008, pbr('mirrorglass', { color: '#9fb2c2', roughness: 0.05, metalness: 1 }), 0, 0, 0.018, false));
-  const header = box(1.9, 0.05, 0.3, plastic('#cfccc5', 0.9), cx, 0.6, -0.85, false);
-  camera.add(bonnet, dash, top, sw, pillar(cx - 0.95, -0.22), pillar(cx + 0.95, 0.22), mirror, header);
+  // From a right-hand-drive seat the right pillar is a slim strip near the right edge of the view,
+  // leaning slightly outwards towards the roof; the left one is mostly out of view.
+  const bl = new THREE.Vector3(cx - 0.85, -0.42, -0.92), br = new THREE.Vector3(0.56, -0.42, -0.95);
+  const tl = new THREE.Vector3(cx - 0.8, 0.6, -0.6), tr = new THREE.Vector3(0.66, 0.62, -0.85);
+  const header = box(1.6, 0.1, 0.25, plastic('#cfccc5', 0.9), cx, 0.55, -0.25, false);
+  const mirror = box(0.18, 0.055, 0.03, trim, cx + 0.05, 0.36, -0.75, false);
+  mirror.add(box(0.16, 0.04, 0.008, pbr('mirrorglass', { color: '#9fb2c2', roughness: 0.05, metalness: 1 }), 0, 0, 0.018, false));
+  camera.add(bonnet, dash, top, sw, pillar(bl, tl), pillar(br, tr), header, mirror);
 }

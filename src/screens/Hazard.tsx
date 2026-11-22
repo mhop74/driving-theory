@@ -29,7 +29,7 @@ export function HazardHome() {
         <h2>Hazard perception</h2>
         <p className="small">Tap the screen as soon as you see a <strong>developing hazard</strong>: something that would make you slow down, stop or change direction. The earlier you respond within the scoring window, the more you score (5 down to 1).</p>
         <p className="small">Tapping constantly or in a pattern scores 0 for the clip, as in the real test.</p>
-        <p className="small muted">The clips are blocky 3D scenes seen from the driver's seat (or top-down 2D if your device can't show 3D). Use them to practise timing and scanning, and also practise with DVSA's official hazard perception clips, which use realistic video.</p>
+        <p className="small muted">The clips are 3D scenes seen from the driver's seat (or top-down 2D if your device can't show 3D). Use them to practise timing and scanning, and also practise with DVSA's official hazard perception clips, which use realistic video.</p>
       </div>
       <div className="card">
         <h3>Full hazard perception mock</h3>

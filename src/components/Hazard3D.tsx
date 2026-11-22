@@ -7,8 +7,8 @@ import {
 } from './voxel';
 import * as real from './realistic';
 
-/** Clips shown in the realistic style (trial); the rest use the blocky voxel style. */
-export const REALISTIC = new Set(['ball']);
+/** All clips use the realistic style; the blocky voxel kit remains as a fallback for any road user the realistic kit lacks. */
+const REALISTIC = { has: (_id: string) => true };
 
 // First-person, blocky 3D renderer for hazard perception clips.
 // It replays each clip's 2D timeline (keys in px) in metres:
