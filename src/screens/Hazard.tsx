@@ -8,6 +8,8 @@ import { shuffle } from '../lib/random';
 import { update } from '../lib/store';
 import { useStore } from '../lib/useStore';
 import { go } from '../lib/router';
+import ueIconBlack from '../assets/brand/unreal-engine-icon-black.png';
+import ueIconWhite from '../assets/brand/unreal-engine-icon-white.png';
 
 const Hazard3DPlayer = lazy(() => import('../components/Hazard3D'));
 const HazardVideo = lazy(() => import('../components/HazardVideo'));
@@ -47,7 +49,7 @@ export function HazardHome() {
           <li>Tapping constantly, very rapidly or in a regular rhythm scores <strong>0 for the whole clip</strong>, as in the real test.</li>
           <li>The real test has {EXAM.hpClips} clips with {EXAM.hpHazards} developing hazards (one clip has two). Each scores up to 5, so the maximum is {EXAM.hpMax} and the pass mark is {EXAM.hpPass}. You get one go at each clip.</li>
         </ul>
-        <p className="small muted">The clips are 3D scenes seen from the driver's seat (or top-down 2D if your device can't show 3D). Clips marked <span className="badge ue">Unreal Engine</span> are pre-rendered videos made in Unreal Engine 5, with the same timings and scoring windows. Use them to practise timing and scanning, and also practise with DVSA's official hazard perception clips, which use realistic video.</p>
+        <p className="small muted">The clips are 3D scenes seen from the driver's seat (or top-down 2D if your device can't show 3D). Clips with the Unreal Engine logo are pre-rendered videos made in Unreal Engine 5, with the same timings and scoring windows. Use them to practise timing and scanning, and also practise with DVSA's official hazard perception clips, which use realistic video.</p>
       </div>
       <div className="card">
         <h3>Full hazard perception mock</h3>
@@ -65,13 +67,25 @@ export function HazardHome() {
       {CLIPS.map((c) => (
         <button key={c.id} className="card topic-row" onClick={() => go(`hazard/clip/${c.id}`)}>
           <div>
-            <strong>{c.title}</strong>{c.video && <span className="badge ue" title="Pre-rendered video made in Unreal Engine 5">Unreal Engine</span>}
+            <strong>{c.title}</strong>
             <div className="muted small">{c.hazards.length} hazard{c.hazards.length > 1 ? 's' : ''}</div>
           </div>
+          {c.video && <UnrealIcon />}
           <span className="chev">›</span>
         </button>
       ))}
+      {CLIPS.some((c) => c.video) && <p className="muted small trademark">Unreal®, Unreal Engine®, and the Unreal Engine® logo are trademarks or registered trademarks of Epic Games, Inc. in the United States of America and elsewhere. Other brands or product names are the trademarks of their respective owners.</p>}
     </div>
+  );
+}
+
+/** Epic's Unreal Engine icon, unaltered: black on the light theme, white on the dark theme. */
+function UnrealIcon() {
+  return (
+    <span className="ue-icon" title="Pre-rendered video made in Unreal Engine 5">
+      <img className="ue-light" src={ueIconBlack} alt="Made with Unreal Engine" width={20} height={20} />
+      <img className="ue-dark" src={ueIconWhite} alt="" aria-hidden="true" width={20} height={20} />
+    </span>
   );
 }
 
