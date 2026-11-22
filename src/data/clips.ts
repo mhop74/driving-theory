@@ -106,6 +106,7 @@ export const CLIPS: Clip[] = [
     hazards: [{ start: 9.2, end: 13.2, label: 'Pedestrian steps onto the zebra crossing' }],
     focus: [0],
     explain: 'The pedestrian walking towards the crossing was a potential hazard. It developed when they stepped onto it.',
+    video: { src: 'videos/zebra.mp4', poster: 'videos/zebra.jpg' },
   },
   {
     id: 'cyclist', title: 'Cyclist and parked van', duration: 24,
