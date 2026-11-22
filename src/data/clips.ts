@@ -46,7 +46,7 @@ export interface Clip {
   focus: number[];
   explain: string;
   /** 3D scene: keys [t, amount] for pulling out to pass road users in your lane; 1 = the usual passing line
-   * (as for parked cars), more moves further towards the centre line. */
+   * (as for parked cars), more moves further towards the centre line, negative keeps left towards the verge. */
   passOut?: [number, number][];
   /** Pre-rendered Unreal Engine video of this clip (path under public/). It is played instead of the
    * 3D scene and uses the 3D scoring windows, because it was rendered with the same timings and sight lines. */
@@ -145,9 +145,11 @@ export const CLIPS: Clip[] = [
       { kind: 'lorry', keys: [[0, 215, 1300], [25, 215, -200]], color: '#2c3e50' },
       { kind: 'car', keys: [[0, 215, 1470], [8.5, 215, 960], [9.5, 182, 870], [10.5, 178, 800], [11.5, 215, 760], [25, 215, -50]], color: '#e74c3c', brake: [10, 11.5] },
     ],
+    passOut: [[9, 0], [10, -0.35], [12.5, -0.35], [14, 0]],   // keep left while the car is on the centre line
     hazards: [{ start: 8.3, end: 12.3, label: 'Oncoming car pulls out to overtake the lorry' }],
     focus: [1],
     explain: 'An oncoming driver pulled out to overtake the lorry and came towards your side. Slow down early to give them room to get back in.',
+    video: { src: 'videos/overtaker.mp4', poster: 'videos/overtaker.jpg' },
   },
   {
     id: 'bus', title: 'Bus at a bus stop', duration: 24,

@@ -31,6 +31,7 @@ Some clips are rendered in Unreal Engine 5 from the same clip data and played as
 | `turn-across` (Oncoming car turns across you) | `public/videos/turn-across.mp4`: 1080p, 30 fps, 22 s, overcast sky |
 | `walkers` (Walkers on a country lane) | `public/videos/walkers.mp4`: 1080p, 30 fps, 22 s, storm sky, rain and a wet road; walkers in bright waterproofs on your side, you pull out to pass (`passOut`) |
 | `robot` (Delivery robot and parked van, replaces the cyclist) | `public/videos/robot.mp4`: 1080p, 30 fps, 24 s, sunny; semi-detached street, road-going delivery robot on the cyclist's path, box van at the kerb |
+| `overtaker` (Country road overtaker) | `public/videos/overtaker.mp4`: 1080p, 30 fps, 22 s, sunny; country lane with bends, box truck as the lorry |
 | `turn-right` (Car ahead turning right) | `public/videos/turn-right.mp4`: 1080p, 30 fps, 22 s |
 | `double` (High street, two hazards) | `public/videos/double.mp4`: 1080p, 30 fps, 28 s |
 | `tractor` (Vehicle from a field) | `public/videos/tractor.mp4`: 1080p, 30 fps, 26 s. A red pickup plays the tractor; scoring window 9.5–13.5 s (`video.windows`) |
