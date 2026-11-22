@@ -45,6 +45,9 @@ export interface Clip {
   /** Index into `actors` of the road user that is each hazard (aligned with `hazards`). */
   focus: number[];
   explain: string;
+  /** 3D scene: keys [t, amount] for pulling out to pass road users in your lane; 1 = the usual passing line
+   * (as for parked cars), more moves further towards the centre line. */
+  passOut?: [number, number][];
   /** Pre-rendered Unreal Engine video of this clip (path under public/). It is played instead of the
    * 3D scene and uses the 3D scoring windows, because it was rendered with the same timings and sight lines. */
   video?: {
@@ -167,22 +170,24 @@ export const CLIPS: Clip[] = [
     video: { src: 'videos/turn-right.mp4', poster: 'videos/turn-right.jpg' },
   },
   {
-    // Four walkers, two by two, on the right-hand edge of a country lane, walking towards you (facing oncoming
-    // traffic, as the Highway Code advises where there is no pavement). Replaces a horse rider clip: no rigged
+    // Four walkers in bright waterproofs, two by two, on your side of a country lane (their right-hand side),
+    // walking towards you, facing oncoming traffic as the Highway Code advises where there is no pavement. You
+    // pull out to pass them about 2 m clear. Replaces a horse rider clip: no rigged
     // horse was available for the Unreal Engine video. Keys from the UE build's hazard/walkersclip.py.
     id: 'walkers', title: 'Walkers on a country lane', duration: 22,
     cam: [[0, 0], [6, 420], [9, 560], [12, 640], [13, 655], [16, 720], [22, 1000]],
     layout: { rural: true },
     actors: [
-      { kind: 'ped', keys: [[0, 250, 756.9], [30, 250, 494.4]], color: '#2c3e50' },
-      { kind: 'ped', keys: [[0, 238, 756.9], [30, 238, 494.4]], color: '#7f8c8d' },
-      { kind: 'ped', keys: [[0, 250, 766.2], [30, 250, 503.8]], color: '#d4ff00' },
-      { kind: 'ped', keys: [[0, 238, 766.2], [30, 238, 503.8]], color: '#34495e' },
+      { kind: 'ped', keys: [[0, 110, 756.9], [30, 110, 494.4]], color: '#d62828' },
+      { kind: 'ped', keys: [[0, 122, 756.9], [30, 122, 494.4]], color: '#ffd400' },
+      { kind: 'ped', keys: [[0, 110, 766.2], [30, 110, 503.8]], color: '#ff7a00' },
+      { kind: 'ped', keys: [[0, 122, 766.2], [30, 122, 503.8]], color: '#1e88e5' },
       oncoming(2200, 80, '#aaa'),
     ],
+    passOut: [[9.5, 0], [11, 1.6], [13.8, 1.6], [15.3, 0]],
     hazards: [{ start: 5, end: 9, label: 'Closing up on walkers in the road' }],
     focus: [0],
-    explain: 'Four people were walking in the road towards you on a lane with no pavement. In the rain they are harder to see and your stopping distance is longer: slow down early and pass slowly, leaving them plenty of room.',
+    explain: 'Four people were walking towards you on your side of a lane with no pavement, facing oncoming traffic as they should. In the rain they are harder to see and your stopping distance is longer: slow down early and pass slowly, leaving them plenty of room.',
     video: { src: 'videos/walkers.mp4', poster: 'videos/walkers.jpg' },
   },
   {

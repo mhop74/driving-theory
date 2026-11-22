@@ -419,9 +419,10 @@ function pose(v: View, t: number) {
   }
 }
 
-/** Move out towards the centre line to pass vehicles parked at the left kerb (deterministic in t). */
-function ownLateral(views: View[], t: number, camY: number) {
-  let out = 0;
+/** Move out towards the centre line to pass vehicles parked at the left kerb, or as the clip's `passOut` keys
+ * say (deterministic in t). */
+function ownLateral(views: View[], t: number, camY: number, passOut?: [number, number][]) {
+  let out = passOut ? lerpKeys(passOut, t)[0] : 0;
   for (const v of views) {
     if (!VEHICLES.has(v.a.kind)) continue;
     const [x, y] = lerpKeys(v.a.keys, t);
@@ -525,7 +526,7 @@ export default function Hazard3DPlayer({ clip, onDone, review }: Props) {
       const cy = camAt(clip, t);
       const v1 = camAt(clip, t + 0.1) - cy, v0 = cy - camAt(clip, t - 0.1);
       const decel = (v0 - v1) * 10 * LONG;
-      camera.position.set(ownLateral(views, t, cy) + DRIVER_OFFSET, EYE_HEIGHT, fwd(cy));
+      camera.position.set(ownLateral(views, t, cy, clip.passOut) + DRIVER_OFFSET, EYE_HEIGHT, fwd(cy));
       camera.rotation.set(-0.05 - clamp(decel * 0.02, -0.02, 0.03), 0, 0);
       if (isPhoto) {
         const s = photo.shake(t, v1 * 10 * LONG);
