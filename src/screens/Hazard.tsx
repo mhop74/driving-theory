@@ -27,8 +27,17 @@ export function HazardHome() {
     <div className="stack">
       <div className="card intro">
         <h2>Hazard perception</h2>
-        <p className="small">Tap the screen as soon as you see a <strong>developing hazard</strong>: something that would make you slow down, stop or change direction. The earlier you respond within the scoring window, the more you score (5 down to 1).</p>
-        <p className="small">Tapping constantly or in a pattern scores 0 for the clip, as in the real test.</p>
+        <p className="small">Tap the screen when you see a hazard <strong>starting to develop</strong>. The earlier you tap once it starts, the more you score.</p>
+        <h3 className="hp-h">How scoring works</h3>
+        <ul className="small hp-rules">
+          <li><strong>Potential hazard:</strong> something that <em>might</em> need you to act, such as a parked car, a pedestrian near the kerb, or a ball by the road.</li>
+          <li><strong>Developing hazard:</strong> one that <em>does</em> need you to slow down, stop or change direction: the car signals and pulls out, the pedestrian steps off the kerb, the ball rolls into the road.</li>
+          <li>Each developing hazard has a <strong>scoring window</strong>. It opens as the hazard starts to develop and is split into five parts: tap in the first part for <strong>5 points</strong>, then 4, 3, 2 and 1. After the window closes you score 0.</li>
+          <li>Only your <strong>first tap inside the window</strong> counts. A tap before the window opens scores nothing, but costs nothing either.</li>
+          <li><strong>Tip:</strong> tap when you spot a potential hazard, then <strong>tap again</strong> as soon as it starts to develop. Your second tap is the one most likely to land early in the window.</li>
+          <li>Tapping constantly, very rapidly or in a regular rhythm scores <strong>0 for the whole clip</strong>, as in the real test.</li>
+          <li>The real test has {EXAM.hpClips} clips with {EXAM.hpHazards} developing hazards (one clip has two). Each scores up to 5, so the maximum is {EXAM.hpMax} and the pass mark is {EXAM.hpPass}. You get one go at each clip.</li>
+        </ul>
         <p className="small muted">The clips are 3D scenes seen from the driver's seat (or top-down 2D if your device can't show 3D). Use them to practise timing and scanning, and also practise with DVSA's official hazard perception clips, which use realistic video.</p>
       </div>
       <div className="card">
@@ -116,19 +125,39 @@ export function OfficialLinks() {
 function Intro({ onStart, label = 'Start clip' }: { onStart: () => void; label?: string }) {
   return (
     <div className="card center">
-      <p className="small">You are the driver. Tap anywhere on the scene when you see a hazard developing. A flag appears each time you tap.</p>
+      <p className="small">You are the driver. Tap anywhere on the scene as soon as a hazard <strong>starts to develop</strong>. Tap once for a potential hazard and again when it develops. A flag appears for each tap. Don't tap constantly or in a rhythm.</p>
       <button className="btn primary" onClick={onStart}>{label}</button>
     </div>
   );
 }
 
+/** Plain-English explanation of how each hazard was scored. */
+function feedback(h: { start: number; end: number }, clicks: number[], points: number, cheat: string | null) {
+  const f = (t: number) => `${t.toFixed(1)} s`;
+  if (cheat) return 'Not scored: the whole clip scores 0 when taps are constant or in a rhythm.';
+  const inside = clicks.filter((c) => c >= h.start && c <= h.end).sort((a, b) => a - b)[0];
+  const before = clicks.filter((c) => c < h.start);
+  if (inside !== undefined) {
+    const after = inside - h.start;
+    return points === 5
+      ? `Excellent: you tapped ${after.toFixed(1)} s after it started to develop (${f(inside)}).`
+      : `You tapped ${after.toFixed(1)} s after it started to develop (${f(inside)}). Tap earlier, as soon as it starts, for more points.`;
+  }
+  if (before.length) return `You tapped at ${f(before[before.length - 1])}, before it started to develop at ${f(h.start)}, so that tap didn't count. Tap again as soon as it starts to develop.`;
+  return `No tap during the scoring window (${f(h.start)}–${f(h.end)}).`;
+}
+
 function ClipResult({ clip, clicks, score }: { clip: Clip; clicks: number[]; score: ClipScore }) {
   const max = clip.hazards.length * 5;
+  const windows = hazardsFor(clip);
   return (
     <div className="card">
       <div className="clip-score"><b>{score.total}</b>/{max}</div>
       {score.cheat && <p className="error">Scored 0: {score.cheat.toLowerCase()}.</p>}
-      <Timeline clip={clip} hazards={hazardsFor(clip)} clicks={clicks} scores={score.perHazard} />
+      <Timeline clip={clip} hazards={windows} clicks={clicks} scores={score.perHazard} />
+      <ul className="small hp-feedback">
+        {windows.map((h, i) => <li key={i}>{feedback(h, clicks, score.perHazard[i], score.cheat)}</li>)}
+      </ul>
       <p className="small">{clip.explain}</p>
     </div>
   );
