@@ -6,6 +6,8 @@ self.addEventListener('activate', (e) => { e.waitUntil(self.clients.claim()); })
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
+  // Videos are streamed with range requests, which the cache can't serve: leave them to the network.
+  if (req.destination === 'video' || req.headers.has('range') || /\.mp4$/.test(new URL(req.url).pathname)) return;
   if (req.mode === 'navigate') {
     e.respondWith(fetch(req).then((res) => { const copy = res.clone(); caches.open(CACHE).then((c) => c.put('./index.html', copy)); return res; })
       .catch(() => caches.match('./index.html')));

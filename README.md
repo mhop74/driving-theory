@@ -7,7 +7,7 @@ A single-user web app for learning and practising the **DVSA car (category B) th
 | Part | Official format | In the app |
 |---|---|---|
 | Multiple choice | 50 questions, 57 minutes, pass mark 43. Includes a 3-question case study (a video clip in the real test). | Timed mock with flag and review. 47 questions spread across the 14 DVSA topics, plus a written 3-question case study. |
-| Hazard perception | 14 clips with 15 developing hazards, scored 0–5 each, pass mark 44/75. | First-person realistic 3D clips (three.js), with a 2D fallback. Scoring uses DVSA-style 5-band windows and a check for constant or rhythmic clicking. 3D windows start when the hazard is first visible from the driver's seat (`scripts/probe-3d-windows.cjs`). |
+| Hazard perception | 14 clips with 15 developing hazards, scored 0–5 each, pass mark 44/75. | First-person realistic 3D clips (three.js), with a 2D fallback. Clips with a `video` (marked **Unreal Engine** in the list) play a pre-rendered Unreal Engine 5 video instead, with the same timings and 3D scoring windows. Scoring uses DVSA-style 5-band windows and a check for constant or rhythmic clicking. 3D windows start when the hazard is first visible from the driver's seat (`scripts/probe-3d-windows.cjs`). |
 
 - **Learning mode:** topic lessons, practice with instant feedback and Highway Code references, spaced repetition, and road sign flashcards.
 - **Testing mode:** full mock test, topic tests, a weak-spots test and a full hazard perception mock.
@@ -16,6 +16,14 @@ A single-user web app for learning and practising the **DVSA car (category B) th
 **Road signs:** every sign in *The Highway Code – Traffic signs* booklet (164 images) is used in the flashcards and the sign questions. They were extracted with `scripts/extract-signs.py`, `scripts/segment-signs.py` and `scripts/extract-signs-rest.py`. © Crown copyright, used under the Open Government Licence v3.0.
 
 The written questions are original. They are written from the Highway Code and *Know Your Traffic Signs* (Open Government Licence) and are not DVSA's licensed question bank.
+
+## Unreal Engine videos
+
+Some clips are rendered in Unreal Engine 5 from the same clip data and played as video (`public/videos/<id>.mp4`, set by the clip's `video` field in `src/data/clips.ts`). The renders keep the clip's timings and the driver's sight lines, so the 3D scoring windows in `src/data/windows3d.ts` still apply. Taps are timed from the video's own clock. If a video can't play (for example offline, since videos aren't cached by the service worker), the clip falls back to the 3D or 2D scene.
+
+| Clip | Video |
+|---|---|
+| `ball` (Residential street) | `public/videos/ball.mp4`: 1080p, 30 fps, 22 s |
 
 ## Deploying to GitHub Pages
 

@@ -202,6 +202,10 @@ input[type=password], select { width: 100%; font: inherit; padding: 12px; border
 .hp-3d canvas { display: block; width: 100% !important; height: 100% !important; }
 .hp-label { position: absolute; top: 0; left: 0; right: 0; padding: 6px 10px; background: rgba(0,0,0,.6); color: #ffd54f; font-weight: 700; font-size: .85rem; text-align: center; pointer-events: none; }
 .hp-time-wide { max-width: 760px; }
+.hp-video { position: relative; width: 100%; max-width: 760px; margin: 0 auto; border-radius: 12px; overflow: hidden; touch-action: none; cursor: crosshair; background: #1c1f22; aspect-ratio: 16 / 9; }
+.hp-video video { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.hp-loading { position: absolute; inset: auto 0 0 0; padding: 6px 10px; background: rgba(0,0,0,.55); color: #fff; font-size: .85rem; text-align: center; pointer-events: none; }
+.badge.ue { background: #1f2a44; color: #fff; }
 .badge { display: inline-block; margin-left: 8px; font-size: .7rem; font-weight: 800; padding: 1px 7px; border-radius: 99px; background: var(--primary); color: var(--primary-text); vertical-align: middle; }
 .official-links ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .official-links li { display: flex; flex-direction: column; gap: 1px; }

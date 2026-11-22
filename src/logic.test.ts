@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { existsSync } from 'node:fs';
 import { ALL_QUESTIONS, QUESTIONS, SCENARIOS, TOPICS } from './data';
-import { CLIPS } from './data/clips';
+import { CLIPS, hazardsFor } from './data/clips';
 import { WINDOWS_3D } from './data/windows3d';
 import { SIGN_CARDS } from './components/Sign';
 import { buildMock, EXAM, weakQuestions } from './lib/exam';
@@ -101,6 +101,17 @@ describe('hazard perception scoring', () => {
       for (const hz of [...c.hazards, ...(WINDOWS_3D[c.id] ?? [])]) { expect(hz.end).toBeLessThanOrEqual(c.duration); expect(hz.end - hz.start).toBeGreaterThan(2); }
       for (const a of c.actors) for (let i = 1; i < a.keys.length; i++) expect(a.keys[i][0], `${c.id}`).toBeGreaterThan(a.keys[i - 1][0]);
       for (let i = 1; i < c.cam.length; i++) expect(c.cam[i][1]).toBeGreaterThanOrEqual(c.cam[i - 1][1]);
+    }
+  });
+
+  it('plays Unreal Engine videos with the 3D scoring windows, and their files exist', () => {
+    const withVideo = CLIPS.filter((c) => c.video);
+    expect(withVideo.map((c) => c.id)).toContain('ball');
+    for (const c of withVideo) {
+      expect(existsSync(`public/${c.video!.src}`), c.video!.src).toBe(true);
+      expect(existsSync(`public/${c.video!.poster}`), c.video!.poster).toBe(true);
+      expect(WINDOWS_3D[c.id], c.id).toBeDefined();
+      expect(hazardsFor(c)).toEqual(WINDOWS_3D[c.id]);
     }
   });
 });

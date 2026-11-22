@@ -45,11 +45,20 @@ export interface Clip {
   /** Index into `actors` of the road user that is each hazard (aligned with `hazards`). */
   focus: number[];
   explain: string;
+  /** Pre-rendered Unreal Engine video of this clip (path under public/). It is played instead of the
+   * 3D scene and uses the 3D scoring windows, because it was rendered with the same timings and sight lines. */
+  video?: { src: string; poster: string };
 }
+
+/** Clips whose video failed to load this session (they fall back to the 3D or 2D scene). */
+export const videoFailed = new Set<string>();
+
+/** Is this clip shown as its Unreal Engine video? */
+export const usesVideo = (clip: Clip) => !!clip.video && !videoFailed.has(clip.id);
 
 /** Scoring windows for the view the clip is actually shown in (3D where supported, otherwise 2D). */
 export function hazardsFor(clip: Clip): HazardWindow[] {
-  return (supports3D() && WINDOWS_3D[clip.id]) || clip.hazards;
+  return ((usesVideo(clip) || supports3D()) && WINDOWS_3D[clip.id]) || clip.hazards;
 }
 
 const parked = (x: number, y: number, color = '#7a8794', face = 0): Actor => ({ kind: 'car', keys: [[0, x, y]], color, face });
@@ -69,6 +78,7 @@ export const CLIPS: Clip[] = [
     hazards: [{ start: 9.2, end: 13.2, label: 'Ball rolls into the road, followed by a child' }],
     focus: [7],
     explain: 'A ball appeared between parked cars. Where there is a ball, a child often follows. Respond as soon as the ball appears.',
+    video: { src: 'videos/ball.mp4', poster: 'videos/ball.jpg' },
   },
   {
     id: 'emerge-left', title: 'Side road on the left', duration: 22,

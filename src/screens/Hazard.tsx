@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
-import { CLIPS, hazardsFor, type Clip } from '../data/clips';
+import { CLIPS, hazardsFor, usesVideo, videoFailed, type Clip } from '../data/clips';
 import { supports3D } from '../lib/webgl';
 import { HazardPlayer, Timeline } from '../components/HazardPlayer';
 import { scoreClip, type ClipScore } from '../lib/hp';
@@ -10,8 +10,17 @@ import { useStore } from '../lib/useStore';
 import { go } from '../lib/router';
 
 const Hazard3DPlayer = lazy(() => import('../components/Hazard3D'));
+const HazardVideo = lazy(() => import('../components/HazardVideo'));
 
 function Player(props: { clip: Clip; onDone: (clicks: number[]) => void; review?: { clicks: number[] } }) {
+  const [, setFailed] = useState(false);
+  if (usesVideo(props.clip)) {
+    return (
+      <Suspense fallback={<div className="card center"><p className="muted">Loading video…</p></div>}>
+        <HazardVideo {...props} onError={() => { videoFailed.add(props.clip.id); setFailed(true); }} />
+      </Suspense>
+    );
+  }
   if (!supports3D()) return <HazardPlayer {...props} />;
   return (
     <Suspense fallback={<div className="card center"><p className="muted">Loading 3D scene…</p></div>}>
@@ -38,7 +47,7 @@ export function HazardHome() {
           <li>Tapping constantly, very rapidly or in a regular rhythm scores <strong>0 for the whole clip</strong>, as in the real test.</li>
           <li>The real test has {EXAM.hpClips} clips with {EXAM.hpHazards} developing hazards (one clip has two). Each scores up to 5, so the maximum is {EXAM.hpMax} and the pass mark is {EXAM.hpPass}. You get one go at each clip.</li>
         </ul>
-        <p className="small muted">The clips are 3D scenes seen from the driver's seat (or top-down 2D if your device can't show 3D). Use them to practise timing and scanning, and also practise with DVSA's official hazard perception clips, which use realistic video.</p>
+        <p className="small muted">The clips are 3D scenes seen from the driver's seat (or top-down 2D if your device can't show 3D). Clips marked <span className="badge ue">Unreal Engine</span> are pre-rendered videos made in Unreal Engine 5, with the same timings and scoring windows. Use them to practise timing and scanning, and also practise with DVSA's official hazard perception clips, which use realistic video.</p>
       </div>
       <div className="card">
         <h3>Full hazard perception mock</h3>
@@ -55,7 +64,10 @@ export function HazardHome() {
       <h3 className="section">Practise a single clip</h3>
       {CLIPS.map((c) => (
         <button key={c.id} className="card topic-row" onClick={() => go(`hazard/clip/${c.id}`)}>
-          <div><strong>{c.title}</strong><div className="muted small">{c.hazards.length} hazard{c.hazards.length > 1 ? 's' : ''}</div></div>
+          <div>
+            <strong>{c.title}</strong>{c.video && <span className="badge ue" title="Pre-rendered video made in Unreal Engine 5">Unreal Engine</span>}
+            <div className="muted small">{c.hazards.length} hazard{c.hazards.length > 1 ? 's' : ''}</div>
+          </div>
           <span className="chev">›</span>
         </button>
       ))}
