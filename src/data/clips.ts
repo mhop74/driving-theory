@@ -180,6 +180,7 @@ export const CLIPS: Clip[] = [
     hazards: [{ start: 8.9, end: 12.9, label: 'Pedestrian steps out in front of the bus' }],
     focus: [1],
     explain: 'Passengers often cross in front of stationary buses. A pedestrian appeared from behind it.',
+    video: { src: 'videos/behind-bus.mp4', poster: 'videos/behind-bus.jpg' },
   },
   {
     id: 'reverse', title: 'Car reversing from a driveway', duration: 22,

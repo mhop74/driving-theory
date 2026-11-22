@@ -24,6 +24,7 @@ Some clips are rendered in Unreal Engine 5 from the same clip data and played as
 | Clip | Video |
 |---|---|
 | `ball` (Residential street) | `public/videos/ball.mp4`: 1080p, 30 fps, 22 s |
+| `behind-bus` (Pedestrian behind a bus) | `public/videos/behind-bus.mp4`: 1080p, 30 fps, 22 s |
 
 ## Deploying to GitHub Pages
 
