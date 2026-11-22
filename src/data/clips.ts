@@ -156,12 +156,13 @@ export const CLIPS: Clip[] = [
     cam: [[0, 0], [8, 560], [10, 660], [12, 720], [14, 800], [24, 1350]],
     layout: { busStop: [{ y: 900, side: 'L' }] },
     actors: [
-      { kind: 'bus', keys: [[0, 118, 900], [9.5, 118, 900], [11, 140, 960], [12, 150, 1010], [14, 150, 1130], [24, 150, 1800]], color: '#c0392b', ind: [7, 11.5, 'R'] },
-      oncoming(1600), oncoming(2500, 90, '#f1c40f'),
+      { kind: 'bus', keys: [[0, 118, 900], [9.5, 118, 900], [11, 140, 960], [12, 150, 1010], [14, 150, 1130], [24, 150, 1800]], color: '#f1c40f', ind: [7, 11.5, 'R'] },
+      oncoming(1600), oncoming(2500, 90, '#7a8794'),
     ],
     hazards: [{ start: 9, end: 13, label: 'Bus signals and pulls out from the stop' }],
     focus: [0],
     explain: 'The bus signalled right and began to pull out. Give way to buses leaving stops where it is safe.',
+    video: { src: 'videos/bus.mp4', poster: 'videos/bus.jpg' },
   },
   {
     id: 'turn-right', title: 'Car ahead turning right', duration: 22,
