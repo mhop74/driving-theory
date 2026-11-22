@@ -19,13 +19,14 @@ The written questions are original. They are written from the Highway Code and *
 
 ## Unreal Engine videos
 
-Some clips are rendered in Unreal Engine 5 from the same clip data and played as video (`public/videos/<id>.mp4`, set by the clip's `video` field in `src/data/clips.ts`). The renders keep the clip's timings and the driver's sight lines, so the 3D scoring windows in `src/data/windows3d.ts` still apply. Taps are timed from the video's own clock. If a video can't play (for example offline, since videos aren't cached by the service worker), the clip falls back to the 3D or 2D scene.
+Some clips are rendered in Unreal Engine 5 from the same clip data and played as video (`public/videos/<id>.mp4`, set by the clip's `video` field in `src/data/clips.ts`). The renders keep the clip's timings and the driver's sight lines, so the 3D scoring windows in `src/data/windows3d.ts` still apply. If a video's hazard becomes visible at a different moment (for example a different vehicle), the clip's `video.windows` overrides them. Taps are timed from the video's own clock. If a video can't play (for example offline, since videos aren't cached by the service worker), the clip falls back to the 3D or 2D scene.
 
 | Clip | Video |
 |---|---|
 | `ball` (Residential street) | `public/videos/ball.mp4`: 1080p, 30 fps, 22 s |
 | `behind-bus` (Pedestrian behind a bus) | `public/videos/behind-bus.mp4`: 1080p, 30 fps, 22 s |
 | `zebra` (Zebra crossing) | `public/videos/zebra.mp4`: 1080p, 30 fps, 23 s |
+| `dog` (Dog on the pavement) | `public/videos/dog.mp4`: 1080p, 30 fps, 22 s |
 
 ## Deploying to GitHub Pages
 

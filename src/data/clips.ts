@@ -47,7 +47,13 @@ export interface Clip {
   explain: string;
   /** Pre-rendered Unreal Engine video of this clip (path under public/). It is played instead of the
    * 3D scene and uses the 3D scoring windows, because it was rendered with the same timings and sight lines. */
-  video?: { src: string; poster: string };
+  video?: {
+    src: string;
+    poster: string;
+    /** Scoring windows for the video when they differ from the 3D scene's (e.g. a different vehicle
+     * becomes visible at a different moment). Defaults to the 3D windows. */
+    windows?: HazardWindow[];
+  };
 }
 
 /** Clips whose video failed to load this session (they fall back to the 3D or 2D scene). */
@@ -58,7 +64,8 @@ export const usesVideo = (clip: Clip) => !!clip.video && !videoFailed.has(clip.i
 
 /** Scoring windows for the view the clip is actually shown in (3D where supported, otherwise 2D). */
 export function hazardsFor(clip: Clip): HazardWindow[] {
-  return ((usesVideo(clip) || supports3D()) && WINDOWS_3D[clip.id]) || clip.hazards;
+  if (usesVideo(clip)) return clip.video!.windows ?? WINDOWS_3D[clip.id] ?? clip.hazards;
+  return (supports3D() && WINDOWS_3D[clip.id]) || clip.hazards;
 }
 
 const parked = (x: number, y: number, color = '#7a8794', face = 0): Actor => ({ kind: 'car', keys: [[0, x, y]], color, face });
@@ -219,6 +226,7 @@ export const CLIPS: Clip[] = [
     hazards: [{ start: 9.5, end: 13.5, label: 'Dog runs into the road' }],
     focus: [1],
     explain: 'The dog was off its lead near the kerb and ran across the road.',
+    video: { src: 'videos/dog.mp4', poster: 'videos/dog.jpg' },
   },
   {
     id: 'door', title: 'Parked car door opens', duration: 23,
