@@ -671,6 +671,23 @@ function makeDoor(color: string): Model {
   return { group: g, wheels: [], legs: [], arms: [], halfWidth: 0.1 };
 }
 
+/** Six-wheeled pavement delivery robot with a pennant on a pole (forward is -z). */
+function makeRobot(color: string): Model {
+  const g = new THREE.Group();
+  g.add(box(0.48, 0.36, 0.8, plastic(color, 0.5), 0, 0.36, 0));
+  g.add(box(0.46, 0.08, 0.76, plastic('#333333', 0.4), 0, 0.58, 0));
+  g.add(box(0.3, 0.05, 0.02, plastic('#ff8c1a', 0.3), 0, 0.42, -0.41, false));
+  g.add(box(0.015, 1.15, 0.015, plastic('#222222', 0.5), 0, 1.0, 0.3));
+  g.add(box(0.01, 0.22, 0.32, plastic('#ff6a00', 0.7), 0, 1.47, 0.46, false));
+  const wheels: THREE.Object3D[] = [];
+  for (const x of [-0.25, 0.25]) for (const z of [-0.3, 0, 0.3]) {
+    const p = new THREE.Group(); p.position.set(x, 0.11, z);
+    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.05, 14), plastic('#111111', 0.8));
+    w.rotation.z = Math.PI / 2; w.castShadow = true; p.add(w); g.add(p); wheels.push(p);
+  }
+  return { group: g, wheels, legs: [], arms: [], halfWidth: 0.24 };
+}
+
 export const BALL_R = 0.11; // a real size-5 football
 
 export function makeModel(a: Actor, i: number, rand: (s: number) => number): Model | null {
@@ -684,6 +701,7 @@ export function makeModel(a: Actor, i: number, rand: (s: number) => number): Mod
     case 'bike': return makeCyclist(color, i * 7 + 2, rand);
     case 'horse': return makeHorse(color, i * 7 + 4, rand);
     case 'dog': return makeDog(rand, i);
+    case 'robot': return makeRobot(color);
     case 'door': return makeDoor('#d35400');
     case 'ped': return makePerson(1.74, color, i * 7 + 1, rand);
     case 'child': return makePerson(1.2, color, i * 7 + 3, rand, '#3d4f73');

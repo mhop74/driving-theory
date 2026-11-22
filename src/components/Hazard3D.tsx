@@ -193,6 +193,24 @@ function makeDog(): Model {
   return { group: g, wheels: [], legs, arms: [], halfWidth: 0.2 };
 }
 
+/** Six-wheeled pavement delivery robot with a pennant on a pole (forward is -z). */
+function makeRobot(color: string): Model {
+  const g = new THREE.Group();
+  const body = vmat(color);
+  g.add(blk(0.48, 0.36, 0.8, body, 0, 0.36, 0));
+  g.add(blk(0.46, 0.08, 0.76, vmat('#333'), 0, 0.58, 0));
+  g.add(blk(0.3, 0.05, 0.02, vmat('#ff8c1a'), 0, 0.42, -0.41, false));
+  g.add(blk(0.015, 1.15, 0.015, vmat('#222'), 0, 1.0, 0.3));
+  g.add(blk(0.01, 0.22, 0.32, vmat('#ff6a00'), 0, 1.47, 0.46, false));
+  const wheels: THREE.Object3D[] = [];
+  for (const x of [-0.25, 0.25]) for (const z of [-0.3, 0, 0.3]) {
+    const p = new THREE.Group(); p.position.set(x, 0.11, z);
+    const w = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.05, 12), vmat('#111'));
+    w.rotation.z = Math.PI / 2; p.add(w); g.add(p); wheels.push(p);
+  }
+  return { group: g, wheels, legs: [], arms: [], halfWidth: 0.24 };
+}
+
 const BALL_R = 0.16;
 
 function makeModel(a: Actor, i: number): Model {
@@ -203,6 +221,7 @@ function makeModel(a: Actor, i: number): Model {
     case 'bike': return makeCyclist(color, i * 7 + 2);
     case 'horse': return makeHorse(color, i * 7 + 4);
     case 'dog': return makeDog();
+    case 'robot': return makeRobot(color);
     case 'ball': {
       const g = new THREE.Group();
       const ball = new THREE.Mesh(new THREE.IcosahedronGeometry(BALL_R, 1), vmat('#fff', footballTex()));

@@ -7,7 +7,7 @@ import { WINDOWS_3D } from './windows3d';
 // your car drives at x=150), y = distance along the road (increasing ahead).
 // Each key is [time s, x, y]; positions are interpolated linearly.
 
-export type Kind = 'car' | 'van' | 'bus' | 'lorry' | 'bike' | 'ped' | 'child' | 'ball' | 'dog' | 'horse' | 'tractor' | 'door';
+export type Kind = 'car' | 'van' | 'bus' | 'lorry' | 'bike' | 'ped' | 'child' | 'ball' | 'dog' | 'horse' | 'tractor' | 'door' | 'robot';
 export type Key = [number, number, number];
 
 export interface Actor {
@@ -120,17 +120,23 @@ export const CLIPS: Clip[] = [
     video: { src: 'videos/zebra.mp4', poster: 'videos/zebra.jpg' },
   },
   {
-    id: 'cyclist', title: 'Cyclist and parked van', duration: 24,
-    cam: [[0, 0], [8, 560], [11, 700], [14, 830], [18, 1010], [24, 1290]],
+    // A pavement delivery robot replaces the cyclist (no cyclist asset for the Unreal Engine video). A box truck is
+    // parked half on the pavement and blocks it; the robot, coming towards you along that pavement, drops into the
+    // road beyond the truck and drives along the road edge in your path. You stop behind the truck and wait, then
+    // pull out to pass. Keys from the UE build's hazard/robotclip.py.
+    id: 'robot', title: 'Delivery robot and parked truck', duration: 24,
+    cam: [[0, 0], [8, 560], [11, 700], [14, 800], [16.5, 852], [18.6, 852], [20, 880], [22, 960], [24, 1080]],
     layout: {},
     actors: [
-      { kind: 'van', keys: [[0, 118, 1000]], color: '#eee' },
-      { kind: 'bike', keys: [[0, 122, 450], [8, 122, 810], [9, 128, 855], [10, 150, 900], [13, 150, 1035], [15, 150, 1125], [16, 128, 1170], [24, 122, 1530]], color: '#2c3e50' },
+      { kind: 'van', keys: [[0, 99, 1000]], color: '#eee' },
+      { kind: 'robot', keys: [[0, 92, 1206.9], [8.6, 92, 1044.4], [10.988, 125, 1028.9], [12.055, 141.7, 1020], [15.702, 141.7, 951.1], [17.792, 104, 940], [18.994, 92, 931.1], [36.641, 92, 597.8]], color: '#222' },
       oncoming(1300), oncoming(2300, 90, '#888'),
     ],
-    hazards: [{ start: 8.6, end: 12.6, label: 'Cyclist pulls out to pass the parked van' }],
+    passOut: [[19.6, 0], [21, 1], [30, 1]],
+    hazards: [{ start: 10, end: 14, label: 'Delivery robot comes out from behind the parked truck' }],
     focus: [1],
-    explain: 'The cyclist had to move out into your path to get past the van. Hold back and give them room.',
+    explain: 'The truck was blocking the pavement, so the delivery robot came off the kerb and along the road towards you. Slow down near vehicles parked on the pavement: people, wheelchairs, pushchairs and robots may have to come out into the road. Wait until it is back on the pavement.',
+    video: { src: 'videos/robot.mp4', poster: 'videos/robot.jpg' },
   },
   {
     id: 'overtaker', title: 'Country road overtaker', duration: 22,

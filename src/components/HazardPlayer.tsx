@@ -20,7 +20,7 @@ export const camAt = (clip: Clip, t: number) => lerpKeys(clip.cam, t)[0];
 
 const SIZE: Record<Kind, [number, number]> = {
   car: [26, 46], van: [30, 58], bus: [32, 110], lorry: [32, 100], bike: [8, 24], tractor: [28, 44],
-  horse: [12, 34], dog: [7, 15], ped: [0, 0], child: [0, 0], ball: [0, 0], door: [0, 0],
+  horse: [12, 34], dog: [7, 15], robot: [6, 9], ped: [0, 0], child: [0, 0], ball: [0, 0], door: [0, 0],
 };
 
 function hash(n: number) { const x = Math.sin(n * 127.1) * 43758.5453; return x - Math.floor(x); }
@@ -178,6 +178,12 @@ function drawActor(ctx: CanvasRenderingContext2D, a: Actor, x: number, y: number
       ctx.save(); ctx.translate(x, y); ctx.rotate((deg * Math.PI) / 180);
       ctx.fillStyle = c; ctx.beginPath(); ctx.ellipse(0, 0, 6, 17, 0, 0, 7); ctx.fill();
       ctx.fillStyle = '#d4ff00'; ctx.beginPath(); ctx.arc(0, -2, 5, 0, 7); ctx.fill();
+      ctx.restore();
+      return;
+    case 'robot':
+      ctx.save(); ctx.translate(x, y); ctx.rotate((deg * Math.PI) / 180);
+      ctx.fillStyle = '#222'; ctx.fillRect(-3.5, -5, 7, 10);
+      ctx.fillStyle = '#ff6a00'; ctx.beginPath(); ctx.arc(0, 3.5, 1.6, 0, 7); ctx.fill();
       ctx.restore();
       return;
     case 'bike':
