@@ -273,5 +273,6 @@ export const CLIPS: Clip[] = [
     ],
     focus: [0, 1],
     explain: 'This clip had two hazards: an older pedestrian crossing slowly, then a car emerging from the right.',
+    video: { src: 'videos/double.mp4', poster: 'videos/double.jpg' },
   },
 ];
