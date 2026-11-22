@@ -167,16 +167,23 @@ export const CLIPS: Clip[] = [
     video: { src: 'videos/turn-right.mp4', poster: 'videos/turn-right.jpg' },
   },
   {
-    id: 'horse', title: 'Horse rider on a country lane', duration: 22,
-    cam: [[0, 0], [6, 420], [9, 560], [12, 640], [22, 790]],
+    // Four walkers, two by two, on the right-hand edge of a country lane, walking towards you (facing oncoming
+    // traffic, as the Highway Code advises where there is no pavement). Replaces a horse rider clip: no rigged
+    // horse was available for the Unreal Engine video. Keys from the UE build's hazard/walkersclip.py.
+    id: 'walkers', title: 'Walkers on a country lane', duration: 22,
+    cam: [[0, 0], [6, 420], [9, 560], [12, 640], [13, 655], [16, 720], [22, 1000]],
     layout: { rural: true },
     actors: [
-      { kind: 'horse', keys: [[0, 122, 620], [30, 122, 1070]], color: '#8e5a2b' },
-      oncoming(1400, 80), oncoming(2200, 80, '#aaa'),
+      { kind: 'ped', keys: [[0, 250, 756.9], [30, 250, 494.4]], color: '#2c3e50' },
+      { kind: 'ped', keys: [[0, 238, 756.9], [30, 238, 494.4]], color: '#7f8c8d' },
+      { kind: 'ped', keys: [[0, 250, 766.2], [30, 250, 503.8]], color: '#d4ff00' },
+      { kind: 'ped', keys: [[0, 238, 766.2], [30, 238, 503.8]], color: '#34495e' },
+      oncoming(2200, 80, '#aaa'),
     ],
-    hazards: [{ start: 5, end: 9, label: 'Closing up on a horse rider' }],
+    hazards: [{ start: 5, end: 9, label: 'Closing up on walkers in the road' }],
     focus: [0],
-    explain: 'You were catching up with a horse rider. Slow down early. Pass only when it is safe, at under 10 mph and at least 2 m away.',
+    explain: 'Four people were walking in the road towards you on a lane with no pavement. In the rain they are harder to see and your stopping distance is longer: slow down early and pass slowly, leaving them plenty of room.',
+    video: { src: 'videos/walkers.mp4', poster: 'videos/walkers.jpg' },
   },
   {
     id: 'behind-bus', title: 'Pedestrian behind a bus', duration: 22,

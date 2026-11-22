@@ -12,7 +12,7 @@ export const WINDOWS_3D: Record<string, HazardWindow[]> = {
   'overtaker': [{ start: 8.3, end: 12.3, label: "Oncoming car pulls out to overtake the lorry" }],
   'bus': [{ start: 9, end: 13, label: "Bus signals and pulls out from the stop" }],
   'turn-right': [{ start: 7.8, end: 11.8, label: "Car in front brakes to turn right" }],
-  'horse': [{ start: 5, end: 9, label: "Closing up on a horse rider" }],
+  'walkers': [{ start: 5, end: 9, label: "Closing up on walkers in the road" }],
   'behind-bus': [{ start: 8.9, end: 12.9, label: "Pedestrian steps out in front of the bus" }],
   'reverse': [{ start: 9.2, end: 13.2, label: "Car reverses out of the driveway" }],
   'turn-across': [{ start: 9.3, end: 13.3, label: "Oncoming car turns right across your path" }],
