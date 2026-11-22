@@ -99,6 +99,7 @@ export const CLIPS: Clip[] = [
     hazards: [{ start: 10, end: 14, label: 'Car pulls out of the side road' }],
     focus: [1],
     explain: 'The van parked near the junction hid the side road. The car waiting there started to move out. Respond when it starts to edge forward.',
+    video: { src: 'videos/emerge-left.mp4', poster: 'videos/emerge-left.jpg' },
   },
   {
     id: 'zebra', title: 'Zebra crossing', duration: 23,
