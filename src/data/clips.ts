@@ -215,6 +215,7 @@ export const CLIPS: Clip[] = [
     hazards: [{ start: 9.3, end: 13.3, label: 'Oncoming car turns right across your path' }],
     focus: [0],
     explain: 'The oncoming car was signalling right and turned into the side road on your left, cutting across your lane.',
+    video: { src: 'videos/turn-across.mp4', poster: 'videos/turn-across.jpg' },
   },
   {
     id: 'dog', title: 'Dog on the pavement', duration: 22,
