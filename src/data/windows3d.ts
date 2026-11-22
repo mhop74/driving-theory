@@ -8,7 +8,7 @@ export const WINDOWS_3D: Record<string, HazardWindow[]> = {
   'ball': [{ start: 9.9, end: 13.9, label: "Ball rolls into the road, followed by a child" }],
   'emerge-left': [{ start: 10, end: 14, label: "Car pulls out of the side road" }],
   'zebra': [{ start: 9.2, end: 13.2, label: "Pedestrian steps onto the zebra crossing" }],
-  'robot': [{ start: 10, end: 14, label: "Delivery robot comes out from behind the parked truck" }],
+  'robot': [{ start: 8.6, end: 12.6, label: "Delivery robot pulls out to pass the parked van" }],
   'overtaker': [{ start: 8.3, end: 12.3, label: "Oncoming car pulls out to overtake the lorry" }],
   'bus': [{ start: 9, end: 13, label: "Bus signals and pulls out from the stop" }],
   'turn-right': [{ start: 7.8, end: 11.8, label: "Car in front brakes to turn right" }],

@@ -20,7 +20,7 @@ export const camAt = (clip: Clip, t: number) => lerpKeys(clip.cam, t)[0];
 
 const SIZE: Record<Kind, [number, number]> = {
   car: [26, 46], van: [30, 58], bus: [32, 110], lorry: [32, 100], bike: [8, 24], tractor: [28, 44],
-  horse: [12, 34], dog: [7, 15], robot: [6, 9], ped: [0, 0], child: [0, 0], ball: [0, 0], door: [0, 0],
+  horse: [12, 34], dog: [7, 15], robot: [8, 13], ped: [0, 0], child: [0, 0], ball: [0, 0], door: [0, 0],
 };
 
 function hash(n: number) { const x = Math.sin(n * 127.1) * 43758.5453; return x - Math.floor(x); }
@@ -182,8 +182,8 @@ function drawActor(ctx: CanvasRenderingContext2D, a: Actor, x: number, y: number
       return;
     case 'robot':
       ctx.save(); ctx.translate(x, y); ctx.rotate((deg * Math.PI) / 180);
-      ctx.fillStyle = '#222'; ctx.fillRect(-3.5, -5, 7, 10);
-      ctx.fillStyle = '#ff6a00'; ctx.beginPath(); ctx.arc(0, 3.5, 1.6, 0, 7); ctx.fill();
+      ctx.fillStyle = '#222'; ctx.fillRect(-4.5, -7, 9, 14);
+      ctx.fillStyle = '#ff6a00'; ctx.beginPath(); ctx.arc(0, 5, 2, 0, 7); ctx.fill();
       ctx.restore();
       return;
     case 'bike':

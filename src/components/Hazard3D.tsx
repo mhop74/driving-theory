@@ -193,7 +193,7 @@ function makeDog(): Model {
   return { group: g, wheels: [], legs, arms: [], halfWidth: 0.2 };
 }
 
-/** Six-wheeled pavement delivery robot with a pennant on a pole (forward is -z). */
+/** Six-wheeled delivery robot with a pennant on a pole (forward is -z). */
 function makeRobot(color: string): Model {
   const g = new THREE.Group();
   const body = vmat(color);
@@ -208,7 +208,8 @@ function makeRobot(color: string): Model {
     const w = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.05, 12), vmat('#111'));
     w.rotation.z = Math.PI / 2; p.add(w); g.add(p); wheels.push(p);
   }
-  return { group: g, wheels, legs: [], arms: [], halfWidth: 0.24 };
+  g.scale.setScalar(1.4);   // as the Unreal Engine video's robot
+  return { group: g, wheels, legs: [], arms: [], halfWidth: 0.34 };
 }
 
 const BALL_R = 0.16;

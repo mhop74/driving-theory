@@ -671,7 +671,7 @@ function makeDoor(color: string): Model {
   return { group: g, wheels: [], legs: [], arms: [], halfWidth: 0.1 };
 }
 
-/** Six-wheeled pavement delivery robot with a pennant on a pole (forward is -z). */
+/** Six-wheeled delivery robot with a pennant on a pole (forward is -z). */
 function makeRobot(color: string): Model {
   const g = new THREE.Group();
   g.add(box(0.48, 0.36, 0.8, plastic(color, 0.5), 0, 0.36, 0));
@@ -685,7 +685,8 @@ function makeRobot(color: string): Model {
     const w = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.05, 14), plastic('#111111', 0.8));
     w.rotation.z = Math.PI / 2; w.castShadow = true; p.add(w); g.add(p); wheels.push(p);
   }
-  return { group: g, wheels, legs: [], arms: [], halfWidth: 0.24 };
+  g.scale.setScalar(1.4);   // as the Unreal Engine video's robot
+  return { group: g, wheels, legs: [], arms: [], halfWidth: 0.34 };
 }
 
 export const BALL_R = 0.11; // a real size-5 football
