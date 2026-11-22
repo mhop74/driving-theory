@@ -27,6 +27,7 @@ Some clips are rendered in Unreal Engine 5 from the same clip data and played as
 | `behind-bus` (Pedestrian behind a bus) | `public/videos/behind-bus.mp4`: 1080p, 30 fps, 22 s |
 | `zebra` (Zebra crossing) | `public/videos/zebra.mp4`: 1080p, 30 fps, 23 s |
 | `dog` (Dog on the pavement) | `public/videos/dog.mp4`: 1080p, 30 fps, 22 s |
+| `tractor` (Vehicle from a field) | `public/videos/tractor.mp4`: 1080p, 30 fps, 26 s. A red pickup plays the tractor; scoring window 9.5–13.5 s (`video.windows`) |
 
 ## Deploying to GitHub Pages
 

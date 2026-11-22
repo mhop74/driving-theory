@@ -243,16 +243,19 @@ export const CLIPS: Clip[] = [
     explain: 'Someone was sitting in the parked car. The door then opened into your path. Leave a door\'s width when passing parked cars where you can.',
   },
   {
-    id: 'tractor', title: 'Tractor from a field', duration: 26,
+    id: 'tractor', title: 'Vehicle from a field', duration: 26,
     cam: [[0, 0], [8, 560], [10, 680], [13, 820], [16, 900], [26, 1150]],
     layout: { rural: true, gate: [{ y: 1000, side: 'R' }] },
     actors: [
       { kind: 'tractor', keys: [[0, 300, 1000], [10, 300, 1000], [11.5, 240, 1005], [13, 165, 1030], [14, 150, 1060], [26, 150, 1360]], color: '#27ae60', beacon: true, face: -90 },
       oncoming(1700, 80),
     ],
-    hazards: [{ start: 9.5, end: 13.5, label: 'Tractor pulls out of the field' }],
+    hazards: [{ start: 9.5, end: 13.5, label: 'Vehicle pulls out of the field' }],
     focus: [0],
-    explain: 'The flashing amber beacon at the field entrance warned of a slow vehicle. It pulled out in front of you.',
+    explain: 'The flashing amber beacon at the field entrance warned that a vehicle was about to pull out. It pulled out in front of you.',
+    // In the video a pickup plays the tractor. It can be seen in the gateway before it moves, so the
+    // video keeps the 2D window rather than the 3D one (the 3D tractor is hidden by the hedge until 10.2 s).
+    video: { src: 'videos/tractor.mp4', poster: 'videos/tractor.jpg', windows: [{ start: 9.5, end: 13.5, label: 'Vehicle pulls out of the field' }] },
   },
   {
     id: 'double', title: 'High street (two hazards)', duration: 28,

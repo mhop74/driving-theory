@@ -18,6 +18,6 @@ export const WINDOWS_3D: Record<string, HazardWindow[]> = {
   'turn-across': [{ start: 9.3, end: 13.3, label: "Oncoming car turns right across your path" }],
   'dog': [{ start: 9.5, end: 13.5, label: "Dog runs into the road" }],
   'door': [{ start: 9.6, end: 13.6, label: "Driver opens their door into the road" }],
-  'tractor': [{ start: 10.2, end: 14.2, label: "Tractor pulls out of the field" }],
+  'tractor': [{ start: 10.2, end: 14.2, label: "Vehicle pulls out of the field" }],
   'double': [{ start: 5.6, end: 9.6, label: "Older pedestrian starts crossing the road" }, { start: 16.2, end: 20.2, label: "Car pulls out of the side road on the right" }],
 };
