@@ -257,13 +257,16 @@ export const CLIPS: Clip[] = [
     layout: {},
     actors: [
       parked(118, 760, '#16a085'), parked(118, 900, '#d35400'),
-      { kind: 'door', keys: [[0, 137, 912]], show: [9.6, 16] },
-      { kind: 'ped', keys: [[0, 128, 905], [10.6, 128, 905], [11.4, 140, 900], [13.5, 140, 880], [15.5, 92, 880]], color: '#2c3e50', show: [10.6, 30] },
+      // the driver gets out, steps clear of the door, closes it (12-12.6 s) and crosses behind the car to the
+      // pavement; keys from the UE build's hazard/doorclip.py (the video's car is an orange Mercedes-AMG GT)
+      { kind: 'door', keys: [[0, 137, 912]], show: [9.6, 12.6] },
+      { kind: 'ped', keys: [[0, 142.5, 899.4], [10.6, 142.5, 899.4], [11.6, 150.8, 888.9], [12.6, 150.8, 888.9], [13.9, 149.2, 866.7], [15.5, 95, 866.7], [16.2, 88, 861.1], [30, 88, 646.4]], color: '#2c3e50', show: [10.6, 30] },
       oncoming(1300), oncoming(2100, 90, '#bbb'),
     ],
     hazards: [{ start: 9.3, end: 13.3, label: 'Driver opens their door into the road' }],
     focus: [2],
     explain: 'Someone was sitting in the parked car. The door then opened into your path. Leave a door\'s width when passing parked cars where you can.',
+    video: { src: 'videos/door.mp4', poster: 'videos/door.jpg' },
   },
   {
     id: 'tractor', title: 'Vehicle from a field', duration: 26,

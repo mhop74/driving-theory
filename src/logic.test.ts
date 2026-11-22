@@ -106,7 +106,7 @@ describe('hazard perception scoring', () => {
 
   it('plays Unreal Engine videos with the 3D scoring windows, and their files exist', () => {
     const withVideo = CLIPS.filter((c) => c.video);
-    expect(withVideo.map((c) => c.id)).toEqual(expect.arrayContaining(['ball', 'behind-bus', 'zebra', 'dog', 'tractor', 'emerge-left', 'double', 'turn-right', 'turn-across', 'walkers', 'robot', 'overtaker', 'bus']));
+    expect(withVideo.map((c) => c.id)).toEqual(expect.arrayContaining(['ball', 'behind-bus', 'zebra', 'dog', 'tractor', 'emerge-left', 'double', 'turn-right', 'turn-across', 'walkers', 'robot', 'overtaker', 'bus', 'door']));
     for (const c of withVideo) {
       expect(existsSync(`public/${c.video!.src}`), c.video!.src).toBe(true);
       expect(existsSync(`public/${c.video!.poster}`), c.video!.poster).toBe(true);

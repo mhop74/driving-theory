@@ -33,6 +33,7 @@ Some clips are rendered in Unreal Engine 5 from the same clip data and played as
 | `robot` (Delivery robot and parked van, replaces the cyclist) | `public/videos/robot.mp4`: 1080p, 30 fps, 24 s, sunny; semi-detached street, road-going delivery robot on the cyclist's path, box van at the kerb |
 | `overtaker` (Country road overtaker) | `public/videos/overtaker.mp4`: 1080p, 30 fps, 22 s, sunny; country lane with bends, box truck as the lorry |
 | `bus` (Bus at a bus stop) | `public/videos/bus.mp4`: 1080p, 30 fps, 24 s, overcast with light rain; semi-detached street, yellow bus, people in bright waterproofs |
+| `door` (Parked car door opens) | `public/videos/door.mp4`: 1080p, 30 fps, 23 s, broken cloud; semi-detached street, orange Mercedes-AMG GT (Car Interaction pack) whose driver opens the door into the road |
 | `turn-right` (Car ahead turning right) | `public/videos/turn-right.mp4`: 1080p, 30 fps, 22 s |
 | `double` (High street, two hazards) | `public/videos/double.mp4`: 1080p, 30 fps, 28 s |
 | `tractor` (Vehicle from a field) | `public/videos/tractor.mp4`: 1080p, 30 fps, 26 s. A red pickup plays the tractor; scoring window 9.5–13.5 s (`video.windows`) |
