@@ -6,9 +6,12 @@ import {
   blk, brickTex, faceTex, fieldTex, footballTex, glassTex, leafTex, liveMat, logTex, noiseTex, plankTex, roofTex, slabTex, strip, vmat,
 } from './voxel';
 import * as real from './realistic';
+import * as photo from './photoreal';
 
 /** All clips use the realistic style; the blocky voxel kit remains as a fallback for any road user the realistic kit lacks. */
 const REALISTIC = { has: (_id: string) => true };
+/** Trial of the photo-real kit (real sky, surface detail, ambient occlusion) on these clips. */
+const PHOTO = new Set(['ball']);
 
 // First-person, blocky 3D renderer for hazard perception clips.
 // It replays each clip's 2D timeline (keys in px) in metres:
@@ -452,7 +455,8 @@ export default function Hazard3DPlayer({ clip, onDone, review }: Props) {
     try { renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' }); }
     catch { setFailed(true); return; }
     LONG = longFor(clip);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    const isPhoto = PHOTO.has(clip.id);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isPhoto ? 1.5 : 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -467,7 +471,10 @@ export default function Hazard3DPlayer({ clip, onDone, review }: Props) {
     sun.shadow.bias = -0.0006;
     scene.add(sun, sun.target);
     let followSky: ((c: THREE.Camera) => void) | null = null;
-    if (isReal) followSky = real.setupEnvironment(renderer, scene, sun);
+    let envReady: Promise<void> = Promise.resolve();
+    // If the sky image cannot be loaded (e.g. offline before it was cached), fall back to the generated sky.
+    if (isPhoto) envReady = photo.setupEnvironment(renderer, scene, sun).catch(() => { followSky = real.setupEnvironment(renderer, scene, sun); });
+    else if (isReal) followSky = real.setupEnvironment(renderer, scene, sun);
     else {
       scene.background = new THREE.Color('#8fc3f2');
       scene.fog = new THREE.Fog('#b7d8f5', 60, 170);
@@ -475,19 +482,20 @@ export default function Hazard3DPlayer({ clip, onDone, review }: Props) {
     }
 
     const camMax = Math.max(...clip.cam.map((c) => c[1]));
-    if (isReal) real.buildWorld(scene, clip, -350, camMax + 1300, { fwd, lat, ROAD_HALF, rand });
+    const kit = isPhoto ? photo : real;
+    if (isReal) kit.buildWorld(scene, clip, -350, camMax + 1300, { fwd, lat, ROAD_HALF, rand });
     else buildWorld(scene, clip, -350, camMax + 1300);
     const beacons: THREE.Mesh[] = [];
     scene.traverse((o) => { if (o.userData.beacon) beacons.push(o as THREE.Mesh); });
     const views: View[] = clip.actors.map((a, i) => {
-      const m = (isReal ? real.makeModel(a, i, rand) : null) ?? makeModel(a, i);
+      const m = (isReal ? kit.makeModel(a, i, rand) : null) ?? makeModel(a, i);
       scene.add(m.group);
       return { a, m, heading: ((a.face ?? (a.keys[0][1] > 180 ? 180 : 0)) * Math.PI) / 180, phase: 0, lastT: 0 };
     });
 
     const camera = new THREE.PerspectiveCamera(isReal ? 60 : 55, 4 / 3, 0.1, 4500);
     scene.add(camera);
-    if (isReal) real.cockpit(camera, DRIVER_OFFSET);
+    if (isReal) kit.cockpit(camera, DRIVER_OFFSET);
     else {
     const bonnet = blk(1.8, 0.1, 2.0, vmat('#fff', noiseTex('#1d5fb4', 0.05)), -DRIVER_OFFSET, -0.48, -1.9, false);
     bonnet.rotation.x = 0.06;
@@ -503,10 +511,12 @@ export default function Hazard3DPlayer({ clip, onDone, review }: Props) {
     camera.add(bonnet, dash, wheelRing, mirror);
     }
 
+    const post = isPhoto ? photo.makePost(renderer, scene, camera) : null;
     const resize = () => {
       const w = el.clientWidth, h = Math.round((w * 3) / 4);
       renderer.setSize(w, h);
       camera.aspect = w / h; camera.updateProjectionMatrix();
+      post?.setSize(w, h);
     };
     resize();
     window.addEventListener('resize', resize);
@@ -517,8 +527,15 @@ export default function Hazard3DPlayer({ clip, onDone, review }: Props) {
       const decel = (v0 - v1) * 10 * LONG;
       camera.position.set(ownLateral(views, t, cy) + DRIVER_OFFSET, EYE_HEIGHT, fwd(cy));
       camera.rotation.set(-0.05 - clamp(decel * 0.02, -0.02, 0.03), 0, 0);
-      sun.position.set(camera.position.x - 30, 50, camera.position.z + 18);
-      sun.target.position.set(camera.position.x, 0, camera.position.z - 22);
+      if (isPhoto) {
+        const s = photo.shake(t, v1 * 10 * LONG);
+        camera.position.y += s.y; camera.rotation.x += s.pitch; camera.rotation.z = s.roll;
+        sun.target.position.set(camera.position.x, 0, camera.position.z - 22);
+        sun.position.copy(sun.target.position).add(photo.sunOffset);
+      } else {
+        sun.position.set(camera.position.x - 30, 50, camera.position.z + 18);
+        sun.target.position.set(camera.position.x, 0, camera.position.z - 22);
+      }
       for (const v of views) pose(v, t);
       followSky?.(camera);
       const on = Math.floor(t * 1.5) % 2 === 0;
@@ -551,21 +568,24 @@ export default function Hazard3DPlayer({ clip, onDone, review }: Props) {
 
     clicks.current = []; setFlags(0);
     start.current = performance.now();
-    let raf = 0, done = false;
+    let raf = 0, done = false, disposed = false;
     const hz = hazardsFor(clip);
     const frame = () => {
       const t = W.__hpFreeze ?? Math.min((performance.now() - start.current) / 1000, clip.duration);
       update(t);
-      renderer.render(scene, camera);
+      if (post) post.render(t); else renderer.render(scene, camera);
       setElapsed(t);
       W.__hpT = t;
       if (review) { const act = hz.find((h) => t >= h.start && t <= h.end); setLabel(act ? act.label : null); }
       if (t >= clip.duration) { if (!done) { done = true; onDone(clicks.current); } return; }
       raf = requestAnimationFrame(frame);
     };
-    raf = requestAnimationFrame(frame);
+    // The clip starts once the sky has loaded, so the timeline is not eaten by the download.
+    envReady.then(() => { if (disposed) return; start.current = performance.now(); raf = requestAnimationFrame(frame); });
     return () => {
+      disposed = true;
       cancelAnimationFrame(raf);
+      post?.dispose();
       window.removeEventListener('resize', resize);
       delete W.__hpProbe;
       scene.traverse((o) => { const m = o as THREE.Mesh; if (m.geometry) m.geometry.dispose(); });
