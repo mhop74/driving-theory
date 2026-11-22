@@ -5,6 +5,10 @@ import { camAt, lerpKeys } from './HazardPlayer';
 import {
   blk, brickTex, faceTex, fieldTex, footballTex, glassTex, leafTex, liveMat, logTex, noiseTex, plankTex, roofTex, slabTex, strip, vmat,
 } from './voxel';
+import * as real from './realistic';
+
+/** Clips shown in the realistic style (trial); the rest use the blocky voxel style. */
+export const REALISTIC = new Set(['ball']);
 
 // First-person, blocky 3D renderer for hazard perception clips.
 // It replays each clip's 2D timeline (keys in px) in metres:
@@ -29,7 +33,8 @@ const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
 // ---------------- models ----------------
 
-interface Lights { brake: THREE.MeshLambertMaterial; indL: THREE.MeshLambertMaterial; indR: THREE.MeshLambertMaterial; reverse: THREE.MeshLambertMaterial; beacon?: THREE.MeshLambertMaterial }
+type LightMat = THREE.MeshLambertMaterial | THREE.MeshStandardMaterial;
+interface Lights { brake: LightMat; indL: LightMat; indR: LightMat; reverse: LightMat; beacon?: LightMat }
 interface Model { group: THREE.Group; lights?: Lights; wheels: THREE.Object3D[]; legs: THREE.Object3D[]; arms: THREE.Object3D[]; halfWidth: number; inner?: THREE.Object3D }
 
 function newLights(): Lights {
@@ -453,29 +458,37 @@ export default function Hazard3DPlayer({ clip, onDone, review }: Props) {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     el.appendChild(renderer.domElement);
 
+    const isReal = REALISTIC.has(clip.id);
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#8fc3f2');
-    scene.fog = new THREE.Fog('#b7d8f5', 60, 170);
-    scene.add(new THREE.HemisphereLight('#eaf4ff', '#6b7a52', 1.6));
     const sun = new THREE.DirectionalLight('#fff3dc', 2.0);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
     Object.assign(sun.shadow.camera, { left: -35, right: 35, top: 35, bottom: -35, near: 1, far: 150 });
     sun.shadow.bias = -0.0006;
     scene.add(sun, sun.target);
+    let followSky: ((c: THREE.Camera) => void) | null = null;
+    if (isReal) followSky = real.setupEnvironment(renderer, scene, sun);
+    else {
+      scene.background = new THREE.Color('#8fc3f2');
+      scene.fog = new THREE.Fog('#b7d8f5', 60, 170);
+      scene.add(new THREE.HemisphereLight('#eaf4ff', '#6b7a52', 1.6));
+    }
 
     const camMax = Math.max(...clip.cam.map((c) => c[1]));
-    buildWorld(scene, clip, -350, camMax + 1300);
+    if (isReal) real.buildWorld(scene, clip, -350, camMax + 1300, { fwd, lat, ROAD_HALF, rand });
+    else buildWorld(scene, clip, -350, camMax + 1300);
     const beacons: THREE.Mesh[] = [];
     scene.traverse((o) => { if (o.userData.beacon) beacons.push(o as THREE.Mesh); });
     const views: View[] = clip.actors.map((a, i) => {
-      const m = makeModel(a, i);
+      const m = (isReal ? real.makeModel(a, i, rand) : null) ?? makeModel(a, i);
       scene.add(m.group);
       return { a, m, heading: ((a.face ?? (a.keys[0][1] > 180 ? 180 : 0)) * Math.PI) / 180, phase: 0, lastT: 0 };
     });
 
-    const camera = new THREE.PerspectiveCamera(55, 4 / 3, 0.1, 400);
+    const camera = new THREE.PerspectiveCamera(isReal ? 60 : 55, 4 / 3, 0.1, 4500);
     scene.add(camera);
+    if (isReal) real.cockpit(camera, DRIVER_OFFSET);
+    else {
     const bonnet = blk(1.8, 0.1, 2.0, vmat('#fff', noiseTex('#1d5fb4', 0.05)), -DRIVER_OFFSET, -0.48, -1.9, false);
     bonnet.rotation.x = 0.06;
     const dash = blk(2.3, 0.3, 0.5, vmat('#fff', noiseTex('#1d1e22', 0.08)), -DRIVER_OFFSET, -0.6, -0.75, false);
@@ -488,6 +501,7 @@ export default function Hazard3DPlayer({ clip, onDone, review }: Props) {
     const mirror = blk(0.26, 0.08, 0.03, vmat('#202224'), -DRIVER_OFFSET + 0.05, 0.31, -0.95, false);
     mirror.add(blk(0.22, 0.05, 0.01, vmat('#5d6f7d'), 0, 0, 0.016, false));
     camera.add(bonnet, dash, wheelRing, mirror);
+    }
 
     const resize = () => {
       const w = el.clientWidth, h = Math.round((w * 3) / 4);
@@ -506,6 +520,7 @@ export default function Hazard3DPlayer({ clip, onDone, review }: Props) {
       sun.position.set(camera.position.x - 30, 50, camera.position.z + 18);
       sun.target.position.set(camera.position.x, 0, camera.position.z - 22);
       for (const v of views) pose(v, t);
+      followSky?.(camera);
       const on = Math.floor(t * 1.5) % 2 === 0;
       for (const b of beacons) (b.material as THREE.MeshLambertMaterial).emissive.set(on ? '#ffb300' : '#000000');
       scene.updateMatrixWorld();
