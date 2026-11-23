@@ -32,7 +32,7 @@ Some clips are rendered in Unreal Engine 5 from the same clip data and played as
 | `walkers` (Walkers on a country lane) | `public/videos/walkers.mp4`: 1080p, 30 fps, 22 s, storm sky, rain and a wet road; walkers in bright waterproofs on your side, you pull out to pass (`passOut`) |
 | `robot` (Delivery robot and parked van, replaces the cyclist) | `public/videos/robot.mp4`: 1080p, 30 fps, 24 s, sunny; semi-detached street, road-going delivery robot on the cyclist's path, box van at the kerb |
 | `overtaker` (Country road overtaker) | `public/videos/overtaker.mp4`: 1080p, 30 fps, 22 s, sunny; country lane with bends, box truck as the lorry |
-| `bus` (Bus at a bus stop) | `public/videos/bus.mp4`: 1080p, 30 fps, 24 s, overcast with light rain; semi-detached street, yellow bus, people in bright waterproofs |
+| `bus` (Bus at a bus stop) | `public/videos/bus.mp4`: 1080p, 30 fps, 24 s, overcast with light rain; bay-fronted terraces on the left, new-build semis on the right, bus stop clearway marking to diagram 1025.1, UK bus stop flag, yellow bus, UK number plates, people in bright waterproofs |
 | `door` (Parked car door opens) | `public/videos/door.mp4`: 1080p, 30 fps, 23 s, broken cloud; semi-detached street, orange Mercedes-AMG GT (Car Interaction pack) whose driver opens the door into the road |
 | `reverse` (Car reversing from a driveway) | `public/videos/reverse.mp4`: 1080p, 30 fps, 22 s, overcast; detached brick houses (Buildings04) with driveways, Vehicle Variety Pack cars |
 | `turn-right` (Car ahead turning right) | `public/videos/turn-right.mp4`: 1080p, 30 fps, 22 s |
